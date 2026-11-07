@@ -1,0 +1,72 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.347072",
+   "Default View_TopLeft":"-285,-323",
+   "ExpandedHierarchyInLayout":"",
+   "comment_0":"So basically from what I understand this is how this thing works:
+
+The processor, has access to DDR, it is a masater to (CONV accelerator and DMA)
+DMA is master  to BRAM.
+
+So basically DMA is going to be filling BRAM, Accelerator reads from BRAM using MAC stream provider and index generator. Outputs of the MAC
+get dequantized for the next layer. This cycle continues until the inference is done. At the end DMA puts the result back in DDR.",
+   "comment_1":"The main memory transfer between DDR and DMA happens between CDMA's
+M_AXI and PS's S_AXI_HP0 which is connected to DDR. So CDMA acts as the master
+and PS/DDR act as slave. The other interface between DMA and PS where PS is
+the master is for configuring the CDMA and writing to its registers.",
+   "comment_2":"CDMA reads from DDR (and note that AXI has both read and write) then routes it through
+the crossbar and then writes it into the BRAM.",
+   "commentid":"comment_0|comment_1|comment_2|",
+   "font_comment_0":"18",
+   "font_comment_1":"24",
+   "font_comment_2":"24",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:9.0 TLS
+#  -string -flagsOSRD
+preplace port DDR -pg 1 -lvl 8 -x 2720 -y 380 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -lvl 8 -x 2720 -y 400 -defaultsOSRD
+preplace inst axi_cdma_0 -pg 1 -lvl 4 -x 1100 -y 390 -defaultsOSRD
+preplace inst axi_crossbar_0 -pg 1 -lvl 3 -x 690 -y 350 -defaultsOSRD
+preplace inst axi_crossbar_1 -pg 1 -lvl 5 -x 1570 -y 400 -defaultsOSRD
+preplace inst axi_protocol_convert_0 -pg 1 -lvl 2 -x 390 -y 330 -defaultsOSRD
+preplace inst axi_protocol_convert_3 -pg 1 -lvl 6 -x 2080 -y 410 -defaultsOSRD
+preplace inst bram -pg 1 -lvl 6 -x 2080 -y 182 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 7 -x 2465 -y 420 -defaultsOSRD
+preplace inst rst_ps7_0_200M -pg 1 -lvl 1 -x 40 -y 430 -defaultsOSRD
+preplace inst conv_accelerator_wra_1 -pg 1 -lvl 4 -x 1100 -y 140 -defaultsOSRD
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 8 -140 330 220 410 540 430 850 480 1350 310 1730 490 2230 320 2690
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 8 -140 530 NJ 530 NJ 530 NJ 530 NJ 530 NJ 530 NJ 530 2690
+preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 5 230 420 550 440 860 490 1380 320 1740
+preplace netloc invert_filters_1 1 4 2 1360 272 NJ
+preplace netloc sel_1 1 4 2 1380 242 1720J
+preplace netloc invert_activations_1 1 4 2 1370 252 NJ
+preplace netloc BRAM_PORT_INPUT_0_1 1 4 2 1390 62 1710J
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER0 1 4 2 1340 72 NJ
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER1 1 4 2 1340 92 NJ
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER2 1 4 2 1390 112 NJ
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER3 1 4 2 1390 132 NJ
+preplace netloc BRAM_PORT_OUTPUT_0_1 1 4 2 1390 172 NJ
+preplace netloc axi_crossbar_0_M00_AXI 1 3 1 830 120n
+preplace netloc axi_protocol_convert_3_M_AXI 1 6 1 N 410
+preplace netloc axi_cdma_0_M_AXI 1 4 1 N 380
+preplace netloc axi_crossbar_1_M00_AXI 1 5 1 N 390
+preplace netloc axi_crossbar_0_M01_AXI 1 3 1 N 360
+preplace netloc axi_crossbar_1_M01_AXI 1 5 1 1710 192n
+preplace netloc processing_system7_0_FIXED_IO 1 7 1 NJ 400
+preplace netloc processing_system7_0_M_AXI_GP0 1 1 7 220 250 NJ 250 840J 280 1350J 12 NJ 12 NJ 12 2700
+preplace netloc axi_protocol_convert_0_M_AXI 1 2 1 N 330
+preplace netloc processing_system7_0_DDR 1 7 1 NJ 380
+preplace cgraphic comment_2 place bot 1693 230 textcolor 4 linecolor 3 linewidth 2
+preplace cgraphic comment_1 place bot 1688 29 textcolor 4 linecolor 3 linewidth 2
+preplace cgraphic comment_0 place top 568 -306 textcolor 4 linecolor 3 linewidth 2
+levelinfo -pg 1 -160 40 390 690 1100 1570 2080 2465 2720
+pagesize -pg 1 -db -bbox -sgen -160 0 2840 1210
+"
+}
+{
+   """""""""""""da_clkrst_cnt""""""""""""":"1"
+}
+{
+   "/comment_0":"comment_0",
+   "/comment_2":"comment_1",
+   "/comment_3":"comment_2"
+}

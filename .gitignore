@@ -1,0 +1,54 @@
+# Vivado project-generated files
+.Xil/
+**/.Xil/
+*.cache/
+*.runs/
+*.sim/
+*.hw/
+*.ip_user_files/
+*.gen/
+
+# Vivado logs, journals, reports, and temporary files
+*.jou
+*.log
+*.str
+*.wdb
+*.pb
+*.wdf
+*.backup.*
+*.tmp
+*.vds
+
+# Generated FPGA programming and implementation outputs
+*.bit
+*.bin
+*.mcs
+*.ltx
+*.dcp
+*.rpt
+*.mmi
+*.elf
+
+# Simulation and waveform outputs
+*.wcfg
+*.vcd
+*.vpd
+*.fsdb
+xsim.dir/
+questa_work/
+modelsim_work/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*~
+.DS_Store
+Thumbs.db
