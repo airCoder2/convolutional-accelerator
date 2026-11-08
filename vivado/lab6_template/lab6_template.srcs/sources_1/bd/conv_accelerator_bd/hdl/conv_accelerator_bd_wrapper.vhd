@@ -1,7 +1,7 @@
 --Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2020.1 (lin64) Build 2902540 Wed May 27 19:54:35 MDT 2020
---Date        : Sun Nov  8 04:32:51 2026
+--Date        : Sun Nov  8 09:30:21 2026
 --Host        : co2050-06.ece.iastate.edu running 64-bit unknown
 --Command     : generate_target conv_accelerator_bd_wrapper.bd
 --Design      : conv_accelerator_bd_wrapper
