@@ -8,12 +8,13 @@ library work;
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use std.env.all;
 
 entity conv_accelerator_tb is
 end conv_accelerator_tb;
 
 architecture Behavioral of conv_accelerator_tb is
+    constant CLK_PERIOD : time := 1 ns;
+    constant RESET_TIME : time := 10 ns;
 
     constant DIM_WIDTH : integer := 12; -- Max dim size is 2048 in a dense layer
     constant INPUT_ADDR_WIDTH : integer := 7; -- Max input size is 60*60*32 < 2^17
@@ -40,10 +41,10 @@ architecture Behavioral of conv_accelerator_tb is
     signal input_end_diff_ow : std_logic_vector(31 downto 0);
     signal output_elements_per_channel : std_logic_vector(31 downto 0);
     signal output_initial_offset : std_logic_vector(31 downto 0);
-    signal mac0_bias : std_logic_vector(31 downto 0);
-    signal mac1_bias : std_logic_vector(31 downto 0);
-    signal mac2_bias : std_logic_vector(31 downto 0);
-    signal mac3_bias : std_logic_vector(31 downto 0);
+    signal mac0_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac1_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac2_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac3_bias : std_logic_vector(31 downto 0) := (others => '0');
     signal q_scale : std_logic_vector(31 downto 0);
     signal q_zero : std_logic_vector(31 downto 0);
 
@@ -210,7 +211,7 @@ begin
     process(BRAM_INPUT_clk)
     begin
         if rising_edge(BRAM_INPUT_clk) then
-            if (BRAM_INPUT_rst = '1') then
+            if (BRAM_INPUT_rst = '0') then
                 BRAM_INPUT_dout_delay1 <= (others => '0');
             elsif (BRAM_INPUT_en = '1') then
                 BRAM_INPUT_dout_delay1 <= BRAM_INPUT_data((32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2))))));
@@ -222,7 +223,7 @@ begin
     process(BRAM_FILTER0_clk)
     begin
         if rising_edge(BRAM_FILTER0_clk) then
-            if (BRAM_FILTER0_rst = '1') then
+            if (BRAM_FILTER0_rst = '0') then
                 BRAM_FILTER0_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER0_en = '1') then
                 BRAM_FILTER0_dout_delay1 <= BRAM_FILTER0_data((32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2))))));
@@ -234,7 +235,7 @@ begin
     process(BRAM_FILTER1_clk)
     begin
         if rising_edge(BRAM_FILTER1_clk) then
-            if (BRAM_FILTER1_rst = '1') then
+            if (BRAM_FILTER1_rst = '0') then
                 BRAM_FILTER1_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER1_en = '1') then
                 BRAM_FILTER1_dout_delay1 <= BRAM_FILTER1_data((32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2))))));
@@ -246,7 +247,7 @@ begin
     process(BRAM_FILTER2_clk)
     begin
         if rising_edge(BRAM_FILTER2_clk) then
-            if (BRAM_FILTER2_rst = '1') then
+            if (BRAM_FILTER2_rst = '0') then
                 BRAM_FILTER2_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER2_en = '1') then
                 BRAM_FILTER2_dout_delay1 <= BRAM_FILTER2_data((32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2))))));
@@ -258,7 +259,7 @@ begin
     process(BRAM_FILTER3_clk)
     begin
         if rising_edge(BRAM_FILTER3_clk) then
-            if (BRAM_FILTER3_rst = '1') then
+            if (BRAM_FILTER3_rst = '0') then
                 BRAM_FILTER3_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER3_en = '1') then
                 BRAM_FILTER3_dout_delay1 <= BRAM_FILTER3_data((32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2))))));
@@ -270,7 +271,7 @@ begin
     process(BRAM_OUTPUT_clk)
     begin
         if rising_edge(BRAM_OUTPUT_clk) then
-            if (BRAM_OUTPUT_rst = '1' or conv_idle = '1') then
+            if (BRAM_OUTPUT_rst = '0' or conv_idle = '1') then
                 BRAM_OUTPUT_dout_delay1 <= (others => '0');
                 BRAM_OUTPUT_data <= (others => '0');
             elsif (BRAM_OUTPUT_en = '1') then
@@ -285,7 +286,7 @@ begin
     end process;
  
 
-    clk <= not clk after 1ps;
+    clk <= not clk after CLK_PERIOD/2;
 
     dut: entity work.conv_accelerator
         generic map(
@@ -430,12 +431,12 @@ begin
         );
 
     process begin
-        rst <= '1';
-        wait for 2ps;
-        conv_idle <= '1';
         rst <= '0';
+        wait for RESET_TIME;
         conv_idle <= '1';
-        wait for 10ps;
+        rst <= '1';
+        conv_idle <= '1';
+        wait for 5*CLK_PERIOD;
         BRAM_INPUT_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A50102031500131211100F0E0D0C0B0A09080706050480FF7F";
         BRAM_FILTER0_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A50C0B0A09080706050480FF7F";
         BRAM_FILTER1_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5E8E9EAEBECEDEEEFF0F1F2F3";
@@ -448,10 +449,10 @@ begin
         filter_c <= x"00000002";
         output_w <= x"00000002";
         output_h <= x"00000002";
-        input_end_diff_fw <= x"00000002"; -- 2
-        input_end_diff_fh <= x"00000006"; -- 6
-        input_end_diff_fc <= x"FFFFFFEF"; -- -17
-        input_end_diff_ow <= x"FFFFFFF1"; -- -15
+        input_end_diff_fw <= x"00000002";
+        input_end_diff_fh <= x"00000006";
+        input_end_diff_fc <= x"FFFFFFEF";
+        input_end_diff_ow <= x"FFFFFFF1";
         output_elements_per_channel <= x"00000004";
         output_initial_offset <= x"00000000";
         mac0_bias <= x"00000000";
@@ -460,14 +461,13 @@ begin
         mac3_bias <= x"00000003";
         q_scale <= x"04000000";
         q_zero <= x"00000000";
-        wait for 10ps;
+        wait for 5*CLK_PERIOD;
         conv_idle <= '0';
         wait until rising_edge(conv_complete);
-        wait for 10ps;
+        wait for 5*CLK_PERIOD;
         
-        report "Simulation Complete! Stopping simulation cleanly.";
-        finish; -- <--- This hard-stops the entire simulation engine natively
-        wait; -- just get stuck here
+
+        assert FALSE Report "Simulation Complete!" severity FAILURE;
     end process;
 
     process
@@ -480,11 +480,11 @@ begin
         EXPECTED_s_index_gen_m_axis_tdata_filter_addr <= EXPECTED_VALUES_s_index_gen_m_axis_tdata_filter_addr((i+1)*7-1 downto i*7);
         EXPECTED_s_index_gen_m_axis_tlast <= EXPECTED_VALUES_s_index_gen_m_axis_tlast(i*1);
         wait until rising_edge(clk) and TEST_s_index_gen_m_axis_tready = '1' and TEST_s_index_gen_m_axis_tvalid = '1';
-        assert TEST_s_index_gen_m_axis_tdata_input_addr = EXPECTED_s_index_gen_m_axis_tdata_input_addr report "(INPUT_ADDR) ASSERTION FAILURE";
+        assert TEST_s_index_gen_m_axis_tdata_input_addr = EXPECTED_s_index_gen_m_axis_tdata_input_addr report "ASSERTION FAILURE";
         if not (TEST_s_index_gen_m_axis_tdata_input_addr = EXPECTED_s_index_gen_m_axis_tdata_input_addr) then TEST_s_index_gen_m_axis_fail <= 'X'; end if;
-        assert TEST_s_index_gen_m_axis_tdata_filter_addr = EXPECTED_s_index_gen_m_axis_tdata_filter_addr report "(FILTER_ADDR) ASSERTION FAILURE";
+        assert TEST_s_index_gen_m_axis_tdata_filter_addr = EXPECTED_s_index_gen_m_axis_tdata_filter_addr report "ASSERTION FAILURE";
         if not (TEST_s_index_gen_m_axis_tdata_filter_addr = EXPECTED_s_index_gen_m_axis_tdata_filter_addr) then TEST_s_index_gen_m_axis_fail <= 'X'; end if;
-        assert TEST_s_index_gen_m_axis_tlast = EXPECTED_s_index_gen_m_axis_tlast report "(TLAST_ADDR) ASSERTION FAILURE";
+        assert TEST_s_index_gen_m_axis_tlast = EXPECTED_s_index_gen_m_axis_tlast report "ASSERTION FAILURE";
         if not (TEST_s_index_gen_m_axis_tlast = EXPECTED_s_index_gen_m_axis_tlast) then TEST_s_index_gen_m_axis_fail <= 'X'; end if;
         i := i + 1;
         if (i = 48) then
@@ -495,172 +495,172 @@ begin
     end process;
     
 
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac0_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000000000110000000000000010110000000000001010000000000000100100000000000010000000000000000111000000000000011000000000000001010000000000000100000000001000000000000000111111110000000001111111000000000000110000000000000010110000000000001010000000000000100100000000000010000000000000000111000000000000011000000000000001010000000000000100000000001000000000000000111111110000000001111111000000000000110000000000000010110000000000001010000000000000100100000000000010000000000000000111000000000000011000000000000001010000000000000100000000001000000000000000111111110000000001111111000000000000110000000000000010110000000000001010000000000000100100000000000010000000000000000111000000000000011000000000000001010000000000000100000000001000000000000000111111110000000001111111";
---        constant EXPECTED_VALUES_s_mac0_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
---    begin
---        EXPECTED_s_mac0_s_axis_tdata <= EXPECTED_VALUES_s_mac0_s_axis_tdata((i+1)*16-1 downto i*16);
---        EXPECTED_s_mac0_s_axis_tlast <= EXPECTED_VALUES_s_mac0_s_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac0_s_axis_tready = '1' and TEST_s_mac0_s_axis_tvalid = '1';
---        assert TEST_s_mac0_s_axis_tdata = EXPECTED_s_mac0_s_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac0_s_axis_tdata = EXPECTED_s_mac0_s_axis_tdata) then TEST_s_mac0_s_axis_fail <= 'X'; end if;
---        assert TEST_s_mac0_s_axis_tlast = EXPECTED_s_mac0_s_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac0_s_axis_tlast = EXPECTED_s_mac0_s_axis_tlast) then TEST_s_mac0_s_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 48) then
---            wait until rising_edge(clk) and TEST_s_mac0_s_axis_tready = '1' and TEST_s_mac0_s_axis_tvalid = '1';
---            TEST_s_mac0_s_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac1_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000001110100000000000111010010000000011101010000000001110101100000000111011000000000011101101000000001110111000000000111011110000000011110000000000001111000100000000111100100000000011110011000000001110100000000000111010010000000011101010000000001110101100000000111011000000000011101101000000001110111000000000111011110000000011110000000000001111000100000000111100100000000011110011000000001110100000000000111010010000000011101010000000001110101100000000111011000000000011101101000000001110111000000000111011110000000011110000000000001111000100000000111100100000000011110011000000001110100000000000111010010000000011101010000000001110101100000000111011000000000011101101000000001110111000000000111011110000000011110000000000001111000100000000111100100000000011110011";
---        constant EXPECTED_VALUES_s_mac1_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
---    begin
---        EXPECTED_s_mac1_s_axis_tdata <= EXPECTED_VALUES_s_mac1_s_axis_tdata((i+1)*16-1 downto i*16);
---        EXPECTED_s_mac1_s_axis_tlast <= EXPECTED_VALUES_s_mac1_s_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac1_s_axis_tready = '1' and TEST_s_mac1_s_axis_tvalid = '1';
---        assert TEST_s_mac1_s_axis_tdata = EXPECTED_s_mac1_s_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac1_s_axis_tdata = EXPECTED_s_mac1_s_axis_tdata) then TEST_s_mac1_s_axis_fail <= 'X'; end if;
---        assert TEST_s_mac1_s_axis_tlast = EXPECTED_s_mac1_s_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac1_s_axis_tlast = EXPECTED_s_mac1_s_axis_tlast) then TEST_s_mac1_s_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 48) then
---            wait until rising_edge(clk) and TEST_s_mac1_s_axis_tready = '1' and TEST_s_mac1_s_axis_tvalid = '1';
---            TEST_s_mac1_s_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac2_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000000010010000000000001000110000000000100010000000000010000100000000001000000000000000011111000000000001111000000000000111010000000000011100000000000001101100000000000110100000000000011001000000000010010000000000001000110000000000100010000000000010000100000000001000000000000000011111000000000001111000000000000111010000000000011100000000000001101100000000000110100000000000011001000000000010010000000000001000110000000000100010000000000010000100000000001000000000000000011111000000000001111000000000000111010000000000011100000000000001101100000000000110100000000000011001000000000010010000000000001000110000000000100010000000000010000100000000001000000000000000011111000000000001111000000000000111010000000000011100000000000001101100000000000110100000000000011001";
---        constant EXPECTED_VALUES_s_mac2_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
---    begin
---        EXPECTED_s_mac2_s_axis_tdata <= EXPECTED_VALUES_s_mac2_s_axis_tdata((i+1)*16-1 downto i*16);
---        EXPECTED_s_mac2_s_axis_tlast <= EXPECTED_VALUES_s_mac2_s_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac2_s_axis_tready = '1' and TEST_s_mac2_s_axis_tvalid = '1';
---        assert TEST_s_mac2_s_axis_tdata = EXPECTED_s_mac2_s_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac2_s_axis_tdata = EXPECTED_s_mac2_s_axis_tdata) then TEST_s_mac2_s_axis_fail <= 'X'; end if;
---        assert TEST_s_mac2_s_axis_tlast = EXPECTED_s_mac2_s_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac2_s_axis_tlast = EXPECTED_s_mac2_s_axis_tlast) then TEST_s_mac2_s_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 48) then
---            wait until rising_edge(clk) and TEST_s_mac2_s_axis_tready = '1' and TEST_s_mac2_s_axis_tvalid = '1';
---            TEST_s_mac2_s_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac3_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000000011000000000000001011110000000000101110000000000010110100000000001011000000000000101011000000000010101000000000001010010000000000101000000000000010011100000000001001100000000000100101000000000011000000000000001011110000000000101110000000000010110100000000001011000000000000101011000000000010101000000000001010010000000000101000000000000010011100000000001001100000000000100101000000000011000000000000001011110000000000101110000000000010110100000000001011000000000000101011000000000010101000000000001010010000000000101000000000000010011100000000001001100000000000100101000000000011000000000000001011110000000000101110000000000010110100000000001011000000000000101011000000000010101000000000001010010000000000101000000000000010011100000000001001100000000000100101";
---        constant EXPECTED_VALUES_s_mac3_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
---    begin
---        EXPECTED_s_mac3_s_axis_tdata <= EXPECTED_VALUES_s_mac3_s_axis_tdata((i+1)*16-1 downto i*16);
---        EXPECTED_s_mac3_s_axis_tlast <= EXPECTED_VALUES_s_mac3_s_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac3_s_axis_tready = '1' and TEST_s_mac3_s_axis_tvalid = '1';
---        assert TEST_s_mac3_s_axis_tdata = EXPECTED_s_mac3_s_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac3_s_axis_tdata = EXPECTED_s_mac3_s_axis_tdata) then TEST_s_mac3_s_axis_fail <= 'X'; end if;
---        assert TEST_s_mac3_s_axis_tlast = EXPECTED_s_mac3_s_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac3_s_axis_tlast = EXPECTED_s_mac3_s_axis_tlast) then TEST_s_mac3_s_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 48) then
---            wait until rising_edge(clk) and TEST_s_mac3_s_axis_tready = '1' and TEST_s_mac3_s_axis_tvalid = '1';
---            TEST_s_mac3_s_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac0_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000000011110000000000000000000000000010010010100000000000000000000000010101101100000000000000001000001100000100";
---        constant EXPECTED_VALUES_s_mac0_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
---    begin
---        EXPECTED_s_mac0_m_axis_tdata <= EXPECTED_VALUES_s_mac0_m_axis_tdata((i+1)*32-1 downto i*32);
---        EXPECTED_s_mac0_m_axis_tlast <= EXPECTED_VALUES_s_mac0_m_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac0_m_axis_tready = '1' and TEST_s_mac0_m_axis_tvalid = '1';
---        assert TEST_s_mac0_m_axis_tdata = EXPECTED_s_mac0_m_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac0_m_axis_tdata = EXPECTED_s_mac0_m_axis_tdata) then TEST_s_mac0_m_axis_fail <= 'X'; end if;
---        assert TEST_s_mac0_m_axis_tlast = EXPECTED_s_mac0_m_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac0_m_axis_tlast = EXPECTED_s_mac0_m_axis_tlast) then TEST_s_mac0_m_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 4) then
---            wait until rising_edge(clk) and TEST_s_mac0_m_axis_tready = '1' and TEST_s_mac0_m_axis_tvalid = '1';
---            TEST_s_mac0_m_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac1_m_axis_tdata : std_logic_vector(128-1 downto 0) := "11111111111111111111100101001100111111111111111111110110100001101111111111111111111111101010010011111111111111111111011111000010";
---        constant EXPECTED_VALUES_s_mac1_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
---    begin
---        EXPECTED_s_mac1_m_axis_tdata <= EXPECTED_VALUES_s_mac1_m_axis_tdata((i+1)*32-1 downto i*32);
---        EXPECTED_s_mac1_m_axis_tlast <= EXPECTED_VALUES_s_mac1_m_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac1_m_axis_tready = '1' and TEST_s_mac1_m_axis_tvalid = '1';
---        assert TEST_s_mac1_m_axis_tdata = EXPECTED_s_mac1_m_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac1_m_axis_tdata = EXPECTED_s_mac1_m_axis_tdata) then TEST_s_mac1_m_axis_fail <= 'X'; end if;
---        assert TEST_s_mac1_m_axis_tlast = EXPECTED_s_mac1_m_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac1_m_axis_tlast = EXPECTED_s_mac1_m_axis_tlast) then TEST_s_mac1_m_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 4) then
---            wait until rising_edge(clk) and TEST_s_mac1_m_axis_tready = '1' and TEST_s_mac1_m_axis_tvalid = '1';
---            TEST_s_mac1_m_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac2_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000101101000011000000000000000000001111011111010000000000000000000000000101011100000000000000000000110110000001";
---        constant EXPECTED_VALUES_s_mac2_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
---    begin
---        EXPECTED_s_mac2_m_axis_tdata <= EXPECTED_VALUES_s_mac2_m_axis_tdata((i+1)*32-1 downto i*32);
---        EXPECTED_s_mac2_m_axis_tlast <= EXPECTED_VALUES_s_mac2_m_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac2_m_axis_tready = '1' and TEST_s_mac2_m_axis_tvalid = '1';
---        assert TEST_s_mac2_m_axis_tdata = EXPECTED_s_mac2_m_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac2_m_axis_tdata = EXPECTED_s_mac2_m_axis_tdata) then TEST_s_mac2_m_axis_fail <= 'X'; end if;
---        assert TEST_s_mac2_m_axis_tlast = EXPECTED_s_mac2_m_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac2_m_axis_tlast = EXPECTED_s_mac2_m_axis_tlast) then TEST_s_mac2_m_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 4) then
---            wait until rising_edge(clk) and TEST_s_mac2_m_axis_tready = '1' and TEST_s_mac2_m_axis_tvalid = '1';
---            TEST_s_mac2_m_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_mac3_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000111111010000000000000000000000010101011111101111111111111111111111110101000000000000000000000001001011000010";
---        constant EXPECTED_VALUES_s_mac3_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
---    begin
---        EXPECTED_s_mac3_m_axis_tdata <= EXPECTED_VALUES_s_mac3_m_axis_tdata((i+1)*32-1 downto i*32);
---        EXPECTED_s_mac3_m_axis_tlast <= EXPECTED_VALUES_s_mac3_m_axis_tlast(i*1);
---        wait until rising_edge(clk) and TEST_s_mac3_m_axis_tready = '1' and TEST_s_mac3_m_axis_tvalid = '1';
---        assert TEST_s_mac3_m_axis_tdata = EXPECTED_s_mac3_m_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_mac3_m_axis_tdata = EXPECTED_s_mac3_m_axis_tdata) then TEST_s_mac3_m_axis_fail <= 'X'; end if;
---        assert TEST_s_mac3_m_axis_tlast = EXPECTED_s_mac3_m_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_mac3_m_axis_tlast = EXPECTED_s_mac3_m_axis_tlast) then TEST_s_mac3_m_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 4) then
---            wait until rising_edge(clk) and TEST_s_mac3_m_axis_tready = '1' and TEST_s_mac3_m_axis_tvalid = '1';
---            TEST_s_mac3_m_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac0_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000010000110000000010000010110000001100001010000000000000100100010011000010000001001000000111000011000000011000001011000001010000101000000100000010001000000000000111111111110000011001111111000000100000110000000011000010110001010100001010000100110000100100010010000010000001000100000111000010110000011000001010000001010000100100000100000001111000000000000110111111110000010101111111000000000000110000010011000010110001001000001010000100000000100100001111000010000000111000000111000010000000011000000111000001010000011000000100000001001000000010000000111111111111111101111111000100110000110000010010000010110001000100001010000011110000100100001110000010000000110100000111000001110000011000000110000001010000010100000100100000001000000011111111111111110111111101111111";
+        constant EXPECTED_VALUES_s_mac0_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
+    begin
+        EXPECTED_s_mac0_s_axis_tdata <= EXPECTED_VALUES_s_mac0_s_axis_tdata((i+1)*16-1 downto i*16);
+        EXPECTED_s_mac0_s_axis_tlast <= EXPECTED_VALUES_s_mac0_s_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac0_s_axis_tready = '1' and TEST_s_mac0_s_axis_tvalid = '1';
+        assert TEST_s_mac0_s_axis_tdata = EXPECTED_s_mac0_s_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac0_s_axis_tdata = EXPECTED_s_mac0_s_axis_tdata) then TEST_s_mac0_s_axis_fail <= 'X'; end if;
+        assert TEST_s_mac0_s_axis_tlast = EXPECTED_s_mac0_s_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac0_s_axis_tlast = EXPECTED_s_mac0_s_axis_tlast) then TEST_s_mac0_s_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 48) then
+            wait until rising_edge(clk) and TEST_s_mac0_s_axis_tready = '1' and TEST_s_mac0_s_axis_tvalid = '1';
+            TEST_s_mac0_s_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac1_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000011110100000000010111010010000001111101010000000001110101100010011111011000001001011101101000011001110111000001011111011110000101011110000000010001111000100000111111100100000011011110011000000101110100000000011111010010001010111101010000100111110101100010010111011000001000111101101000010111110111000001010111011110000100111110000000001111111000100000110111100100000010111110011000000001110100000010011111010010001001011101010000100001110101100001111111011000000111011101101000010001110111000000111111011110000011011110000000001001111000110000000111100101111111111110011000100111110100000010010111010010001000111101010000011111110101100001110111011000000110111101101000001111110111000000110111011110000010111110000100000001111000111111111111100100111111111110011";
+        constant EXPECTED_VALUES_s_mac1_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
+    begin
+        EXPECTED_s_mac1_s_axis_tdata <= EXPECTED_VALUES_s_mac1_s_axis_tdata((i+1)*16-1 downto i*16);
+        EXPECTED_s_mac1_s_axis_tlast <= EXPECTED_VALUES_s_mac1_s_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac1_s_axis_tready = '1' and TEST_s_mac1_s_axis_tvalid = '1';
+        assert TEST_s_mac1_s_axis_tdata = EXPECTED_s_mac1_s_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac1_s_axis_tdata = EXPECTED_s_mac1_s_axis_tdata) then TEST_s_mac1_s_axis_fail <= 'X'; end if;
+        assert TEST_s_mac1_s_axis_tlast = EXPECTED_s_mac1_s_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac1_s_axis_tlast = EXPECTED_s_mac1_s_axis_tlast) then TEST_s_mac1_s_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 48) then
+            wait until rising_edge(clk) and TEST_s_mac1_s_axis_tready = '1' and TEST_s_mac1_s_axis_tvalid = '1';
+            TEST_s_mac1_s_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac2_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000010010010000000010001000110000001100100010000000000010000100010011001000000001001000011111000011000001111000001011000111010000101000011100000010000001101100000111000110100000011000011001000000100010010000000011001000110001010100100010000100110010000100010010001000000001000100011111000010110001111000001010000111010000100100011100000001110001101100000110000110100000010100011001000000000010010000010011001000110001001000100010000100000010000100001111001000000000111000011111000010000001111000000111000111010000011000011100000001000001101110000000000110101111111100011001000100110010010000010010001000110001000100100010000011110010000100001110001000000000110100011111000001110001111000000110000111010000010100011100100000000001101111111111000110100111111100011001";
+        constant EXPECTED_VALUES_s_mac2_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
+    begin
+        EXPECTED_s_mac2_s_axis_tdata <= EXPECTED_VALUES_s_mac2_s_axis_tdata((i+1)*16-1 downto i*16);
+        EXPECTED_s_mac2_s_axis_tlast <= EXPECTED_VALUES_s_mac2_s_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac2_s_axis_tready = '1' and TEST_s_mac2_s_axis_tvalid = '1';
+        assert TEST_s_mac2_s_axis_tdata = EXPECTED_s_mac2_s_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac2_s_axis_tdata = EXPECTED_s_mac2_s_axis_tdata) then TEST_s_mac2_s_axis_fail <= 'X'; end if;
+        assert TEST_s_mac2_s_axis_tlast = EXPECTED_s_mac2_s_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac2_s_axis_tlast = EXPECTED_s_mac2_s_axis_tlast) then TEST_s_mac2_s_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 48) then
+            wait until rising_edge(clk) and TEST_s_mac2_s_axis_tready = '1' and TEST_s_mac2_s_axis_tvalid = '1';
+            TEST_s_mac2_s_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac3_s_axis_tdata : std_logic_vector(768-1 downto 0) := "000000010011000000000010001011110000001100101110000000000010110100010011001011000001001000101011000011000010101000001011001010010000101000101000000010000010011100000111001001100000011000100101000000100011000000000011001011110001010100101110000100110010110100010010001011000001000100101011000010110010101000001010001010010000100100101000000001110010011100000110001001100000010100100101000000000011000000010011001011110001001000101110000100000010110100001111001011000000111000101011000010000010101000000111001010010000011000101000000001000010011110000000001001101111111100100101000100110011000000010010001011110001000100101110000011110010110100001110001011000000110100101011000001110010101000000110001010010000010100101000100000000010011111111111001001100111111100100101";
+        constant EXPECTED_VALUES_s_mac3_s_axis_tlast : std_logic_vector(48-1 downto 0) := "100000000000100000000000100000000000100000000000";
+    begin
+        EXPECTED_s_mac3_s_axis_tdata <= EXPECTED_VALUES_s_mac3_s_axis_tdata((i+1)*16-1 downto i*16);
+        EXPECTED_s_mac3_s_axis_tlast <= EXPECTED_VALUES_s_mac3_s_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac3_s_axis_tready = '1' and TEST_s_mac3_s_axis_tvalid = '1';
+        assert TEST_s_mac3_s_axis_tdata = EXPECTED_s_mac3_s_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac3_s_axis_tdata = EXPECTED_s_mac3_s_axis_tdata) then TEST_s_mac3_s_axis_fail <= 'X'; end if;
+        assert TEST_s_mac3_s_axis_tlast = EXPECTED_s_mac3_s_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac3_s_axis_tlast = EXPECTED_s_mac3_s_axis_tlast) then TEST_s_mac3_s_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 48) then
+            wait until rising_edge(clk) and TEST_s_mac3_s_axis_tready = '1' and TEST_s_mac3_s_axis_tvalid = '1';
+            TEST_s_mac3_s_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac0_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000000011110000000000000000000000000010010010100000000000000000000000010101101100000000000000001000001100000100";
+        constant EXPECTED_VALUES_s_mac0_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
+    begin
+        EXPECTED_s_mac0_m_axis_tdata <= EXPECTED_VALUES_s_mac0_m_axis_tdata((i+1)*32-1 downto i*32);
+        EXPECTED_s_mac0_m_axis_tlast <= EXPECTED_VALUES_s_mac0_m_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac0_m_axis_tready = '1' and TEST_s_mac0_m_axis_tvalid = '1';
+        assert TEST_s_mac0_m_axis_tdata = EXPECTED_s_mac0_m_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac0_m_axis_tdata = EXPECTED_s_mac0_m_axis_tdata) then TEST_s_mac0_m_axis_fail <= 'X'; end if;
+        assert TEST_s_mac0_m_axis_tlast = EXPECTED_s_mac0_m_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac0_m_axis_tlast = EXPECTED_s_mac0_m_axis_tlast) then TEST_s_mac0_m_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 4) then
+            wait until rising_edge(clk) and TEST_s_mac0_m_axis_tready = '1' and TEST_s_mac0_m_axis_tvalid = '1';
+            TEST_s_mac0_m_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac1_m_axis_tdata : std_logic_vector(128-1 downto 0) := "11111111111111111111100101001100111111111111111111110110100001101111111111111111111111101010010011111111111111111111011111000010";
+        constant EXPECTED_VALUES_s_mac1_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
+    begin
+        EXPECTED_s_mac1_m_axis_tdata <= EXPECTED_VALUES_s_mac1_m_axis_tdata((i+1)*32-1 downto i*32);
+        EXPECTED_s_mac1_m_axis_tlast <= EXPECTED_VALUES_s_mac1_m_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac1_m_axis_tready = '1' and TEST_s_mac1_m_axis_tvalid = '1';
+        assert TEST_s_mac1_m_axis_tdata = EXPECTED_s_mac1_m_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac1_m_axis_tdata = EXPECTED_s_mac1_m_axis_tdata) then TEST_s_mac1_m_axis_fail <= 'X'; end if;
+        assert TEST_s_mac1_m_axis_tlast = EXPECTED_s_mac1_m_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac1_m_axis_tlast = EXPECTED_s_mac1_m_axis_tlast) then TEST_s_mac1_m_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 4) then
+            wait until rising_edge(clk) and TEST_s_mac1_m_axis_tready = '1' and TEST_s_mac1_m_axis_tvalid = '1';
+            TEST_s_mac1_m_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac2_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000101101000011000000000000000000001111011111010000000000000000000000000101011100000000000000000000110110000001";
+        constant EXPECTED_VALUES_s_mac2_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
+    begin
+        EXPECTED_s_mac2_m_axis_tdata <= EXPECTED_VALUES_s_mac2_m_axis_tdata((i+1)*32-1 downto i*32);
+        EXPECTED_s_mac2_m_axis_tlast <= EXPECTED_VALUES_s_mac2_m_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac2_m_axis_tready = '1' and TEST_s_mac2_m_axis_tvalid = '1';
+        assert TEST_s_mac2_m_axis_tdata = EXPECTED_s_mac2_m_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac2_m_axis_tdata = EXPECTED_s_mac2_m_axis_tdata) then TEST_s_mac2_m_axis_fail <= 'X'; end if;
+        assert TEST_s_mac2_m_axis_tlast = EXPECTED_s_mac2_m_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac2_m_axis_tlast = EXPECTED_s_mac2_m_axis_tlast) then TEST_s_mac2_m_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 4) then
+            wait until rising_edge(clk) and TEST_s_mac2_m_axis_tready = '1' and TEST_s_mac2_m_axis_tvalid = '1';
+            TEST_s_mac2_m_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_mac3_m_axis_tdata : std_logic_vector(128-1 downto 0) := "00000000000000000000111111010000000000000000000000010101011111101111111111111111111111110101000000000000000000000001001011000010";
+        constant EXPECTED_VALUES_s_mac3_m_axis_tlast : std_logic_vector(4-1 downto 0) := "1111";
+    begin
+        EXPECTED_s_mac3_m_axis_tdata <= EXPECTED_VALUES_s_mac3_m_axis_tdata((i+1)*32-1 downto i*32);
+        EXPECTED_s_mac3_m_axis_tlast <= EXPECTED_VALUES_s_mac3_m_axis_tlast(i*1);
+        wait until rising_edge(clk) and TEST_s_mac3_m_axis_tready = '1' and TEST_s_mac3_m_axis_tvalid = '1';
+        assert TEST_s_mac3_m_axis_tdata = EXPECTED_s_mac3_m_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_mac3_m_axis_tdata = EXPECTED_s_mac3_m_axis_tdata) then TEST_s_mac3_m_axis_fail <= 'X'; end if;
+        assert TEST_s_mac3_m_axis_tlast = EXPECTED_s_mac3_m_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_mac3_m_axis_tlast = EXPECTED_s_mac3_m_axis_tlast) then TEST_s_mac3_m_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 4) then
+            wait until rising_edge(clk) and TEST_s_mac3_m_axis_tready = '1' and TEST_s_mac3_m_axis_tvalid = '1';
+            TEST_s_mac3_m_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
 --    
 --
 --    process

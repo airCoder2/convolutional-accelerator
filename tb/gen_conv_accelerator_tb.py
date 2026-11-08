@@ -138,10 +138,10 @@ wait for 10ps;
                         filter1_val = filter[1][fc][fh][fw]
                         filter2_val = filter[2][fc][fh][fw]
                         filter3_val = filter[3][fc][fh][fw]
-                        mac0_in_tdata.append((np.uint8(input_val) << 8) | np.uint8(filter0_val))
-                        mac1_in_tdata.append((np.uint8(input_val) << 8) | np.uint8(filter1_val))
-                        mac2_in_tdata.append((np.uint8(input_val) << 8) | np.uint8(filter2_val))
-                        mac3_in_tdata.append((np.uint8(input_val) << 8) | np.uint8(filter3_val))
+                        mac0_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter0_val)))
+                        mac1_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter1_val)))
+                        mac2_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter2_val)))
+                        mac3_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter3_val)))
                         mac0_in_tlast.append(last)
                         mac1_in_tlast.append(last)
                         mac2_in_tlast.append(last)

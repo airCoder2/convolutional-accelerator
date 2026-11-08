@@ -59,12 +59,12 @@ begin
     M_AXIS_TDATA_filter_addr <= std_logic_vector(s_filter_addr);
 
     -- index gen output is allways valid (except for when being reset and after a convolution is done for one layer. Because we should be expecting conv_idle and a reset)
-    M_AXIS_TVALID <= '1' when s_conv_done = '0' and conv_idle  = '0' and rst = '0' else '0';
+    M_AXIS_TVALID <= '1' when s_conv_done = '0' and conv_idle  = '0' and rst = '1' else '0';
 
     process(clk)
     begin
         if rising_edge(clk) then
-            if (rst = '1' or conv_idle = '1') then
+            if (rst = '0' or conv_idle = '1') then
                 s_fw <= (others => '0');        
                 s_fh <= (others => '0');        
                 s_fc <= (others => '0');        

@@ -52,6 +52,6 @@ architecture Behavioral of output_storage is
 
 begin
 
--- TODO
+    S_AXIS_TREADY <= '0';
 
 end Behavioral;

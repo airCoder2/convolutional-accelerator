@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root MajorVersion="0" MinorVersion="39">
+  <CompositeFile CompositeFileTopName="dsp_mac" CanBeSetAsTop="false" CanDisplayChildGraph="true">
+    <Description>Composite Fileset</Description>
+    <Generation Name="SYNTHESIS" State="RESET" Timestamp="1794093001"/>
+    <Generation Name="IMPLEMENTATION" State="RESET" Timestamp="1794093001"/>
+    <Generation Name="SIMULATION" State="RESET" Timestamp="1794093001"/>
+    <Generation Name="HW_HANDOFF" State="RESET" Timestamp="1794093001"/>
+    <FileCollection Name="SOURCES" Type="SOURCES">
+      <File Name="ip/dsp_mac_master_controller_0_0/dsp_mac_master_controller_0_0.xci" Type="IP">
+        <Instance HierarchyPath="master_controller_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/dsp_mac_shift_reg_0_1/dsp_mac_shift_reg_0_1.xci" Type="IP">
+        <Instance HierarchyPath="shift_reg_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/dsp_mac_xbip_dsp48_macro_0_0/dsp_mac_xbip_dsp48_macro_0_0.xci" Type="IP">
+        <Instance HierarchyPath="xbip_dsp48_macro_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/dsp_mac_xlslice_0_0/dsp_mac_xlslice_0_0.xci" Type="IP">
+        <Instance HierarchyPath="xlslice_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+      <File Name="ip/dsp_mac_slave_controller_0_0/dsp_mac_slave_controller_0_0.xci" Type="IP">
+        <Instance HierarchyPath="slave_controller_0"/>
+        <Properties IsEditable="false" IsVisible="true" Timestamp="0" IsTrackable="true" IsStatusTracked="true"/>
+        <Library Name="xil_defaultlib"/>
+        <UsedIn Val="SYNTHESIS"/>
+        <UsedIn Val="IMPLEMENTATION"/>
+        <UsedIn Val="SIMULATION"/>
+      </File>
+    </FileCollection>
+  </CompositeFile>
+</Root>

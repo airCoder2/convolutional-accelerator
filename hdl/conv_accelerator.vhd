@@ -157,6 +157,25 @@ end conv_accelerator;
 
 architecture Behavioral of conv_accelerator is
 
+    -- MY AXIS MAC IP --
+------------- Begin Cut here for COMPONENT Declaration ------ COMP_TAG
+COMPONENT axis_dsp_mac_0
+  PORT (
+    ACLK : IN STD_LOGIC;
+    ARESETN : IN STD_LOGIC;
+    M_AXIS_tdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+    M_AXIS_tlast : OUT STD_LOGIC;
+    M_AXIS_tready : IN STD_LOGIC;
+    M_AXIS_tvalid : OUT STD_LOGIC;
+    S_AXIS_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+    S_AXIS_tlast : IN STD_LOGIC;
+    S_AXIS_tready : OUT STD_LOGIC;
+    S_AXIS_tvalid : IN STD_LOGIC;
+    bias : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
+  );
+END COMPONENT;
+-- COMP_TAG_END ------ End COMPONENT Declaration ------------
+
     signal s_bram_en : std_logic;
     
     signal s_index_gen_m_axis_tready : std_logic;
@@ -309,7 +328,8 @@ begin
             MAC_DATA_WIDTH => MAC_DATA_WIDTH
         )
         port map(
-            S_AXIS_TREADY => s_index_gen_m_axis_tready, -- ME: so s_index_gen_m_axis_tready is driven by mac stream provider
+            -- slave interface with Index generator
+            S_AXIS_TREADY => s_index_gen_m_axis_tready, -- ME: s_index_gen_m_axis_tready is driven by mac stream provider
             S_AXIS_TDATA_input_addr => s_index_gen_m_axis_tdata_input_addr,
             S_AXIS_TDATA_filter_addr => s_index_gen_m_axis_tdata_filter_addr,
             S_AXIS_TLAST => s_index_gen_m_axis_tlast,
@@ -378,102 +398,266 @@ begin
             rst => rst,
             clk => clk
         );
+
+--    my_mac0: entity work.staged_mac
+--      generic map(
+--          C_DATA_WIDTH => 8
+--        )
+--        port map(
+--            ACLK	=> clk,
+--            ARESETN => rst,
+--
+--            S_AXIS_TREADY	=> s_mac0_s_axis_tready, 
+--            S_AXIS_TDATA	=> s_mac0_s_axis_tdata,
+--            S_AXIS_TLAST	=> s_mac0_s_axis_tlast,
+--            S_AXIS_TVALID	=> s_mac0_s_axis_tvalid,
+--
+--            bias => mac0_bias,
+--
+--            M_AXIS_TVALID   =>	s_mac0_m_axis_tvalid,
+--            M_AXIS_TDATA    =>  s_mac0_m_axis_tdata, 
+--            M_AXIS_TLAST    =>  s_mac0_m_axis_tlast, 
+--            M_AXIS_TREADY   =>	s_mac0_m_axis_tready
+--        );
+--
+--    my_mac1: entity work.staged_mac
+--      generic map(
+--          C_DATA_WIDTH => 8
+--        )
+--        port map(
+--            ACLK	=> clk,
+--            ARESETN => rst,
+--
+--            S_AXIS_TREADY	=> s_mac1_s_axis_tready, 
+--            S_AXIS_TDATA	=> s_mac1_s_axis_tdata,
+--            S_AXIS_TLAST	=> s_mac1_s_axis_tlast,
+--            S_AXIS_TVALID	=> s_mac1_s_axis_tvalid,
+--
+--            bias => mac1_bias,
+--
+--            M_AXIS_TVALID   =>	s_mac1_m_axis_tvalid,
+--            M_AXIS_TDATA    =>  s_mac1_m_axis_tdata, 
+--            M_AXIS_TLAST    =>  s_mac1_m_axis_tlast, 
+--            M_AXIS_TREADY   =>	s_mac1_m_axis_tready
+--        );
+--
+--
+--    my_mac2: entity work.staged_mac
+--      generic map(
+--          C_DATA_WIDTH => 8
+--        )
+--        port map(
+--            ACLK	=> clk,
+--            ARESETN => rst,
+--
+--            S_AXIS_TREADY	=> s_mac2_s_axis_tready, 
+--            S_AXIS_TDATA	=> s_mac2_s_axis_tdata,
+--            S_AXIS_TLAST	=> s_mac2_s_axis_tlast,
+--            S_AXIS_TVALID	=> s_mac2_s_axis_tvalid,
+--
+--            bias => mac2_bias,
+--
+--            M_AXIS_TVALID   =>	s_mac2_m_axis_tvalid,
+--            M_AXIS_TDATA    =>  s_mac2_m_axis_tdata, 
+--            M_AXIS_TLAST    =>  s_mac2_m_axis_tlast, 
+--            M_AXIS_TREADY   =>	s_mac2_m_axis_tready
+--        );
+--
+--
+--
+--    my_mac3: entity work.staged_mac
+--      generic map(
+--          C_DATA_WIDTH => 8
+--        )
+--        port map(
+--            ACLK	=> clk,
+--            ARESETN => rst,
+--
+--            S_AXIS_TREADY	=> s_mac3_s_axis_tready, 
+--            S_AXIS_TDATA	=> s_mac3_s_axis_tdata,
+--            S_AXIS_TLAST	=> s_mac3_s_axis_tlast,
+--            S_AXIS_TVALID	=> s_mac3_s_axis_tvalid,
+--
+--            bias => mac3_bias,
+--
+--            M_AXIS_TVALID   =>	s_mac3_m_axis_tvalid,
+--            M_AXIS_TDATA    =>  s_mac3_m_axis_tdata, 
+--            M_AXIS_TLAST    =>  s_mac3_m_axis_tlast, 
+--            M_AXIS_TREADY   =>	s_mac3_m_axis_tready
+--        );
+
+
+
+    dsp_mac_0 : axis_dsp_mac_0
+        port map (
+            ACLK => clk,
+            ARESETN => rst,
+            
+            M_AXIS_tdata => s_mac0_m_axis_tdata,
+            M_AXIS_tlast => s_mac0_m_axis_tlast,
+            M_AXIS_tready => s_mac0_m_axis_tready,
+            M_AXIS_tvalid => s_mac0_m_axis_tvalid,
+            
+            S_AXIS_tdata => s_mac0_s_axis_tdata,
+            S_AXIS_tlast => s_mac0_s_axis_tlast,
+            S_AXIS_tready => s_mac0_s_axis_tready,
+            S_AXIS_tvalid => s_mac0_s_axis_tvalid,
+            
+            bias => mac0_bias
+      );
+
+    dsp_mac_1 : axis_dsp_mac_0
+        port map (
+            ACLK => clk,
+            ARESETN => rst,
+            
+            M_AXIS_tdata => s_mac1_m_axis_tdata,
+            M_AXIS_tlast => s_mac1_m_axis_tlast,
+            M_AXIS_tready => s_mac1_m_axis_tready,
+            M_AXIS_tvalid => s_mac1_m_axis_tvalid,
+            
+            S_AXIS_tdata => s_mac1_s_axis_tdata,
+            S_AXIS_tlast => s_mac1_s_axis_tlast,
+            S_AXIS_tready => s_mac1_s_axis_tready,
+            S_AXIS_tvalid => s_mac1_s_axis_tvalid,
+            
+            bias => mac1_bias
+      );
+
+    dsp_mac_2 : axis_dsp_mac_0
+        port map (
+            ACLK => clk,
+            ARESETN => rst,
+            
+            M_AXIS_tdata => s_mac2_m_axis_tdata,
+            M_AXIS_tlast => s_mac2_m_axis_tlast,
+            M_AXIS_tready => s_mac2_m_axis_tready,
+            M_AXIS_tvalid => s_mac2_m_axis_tvalid,
+            
+            S_AXIS_tdata => s_mac2_s_axis_tdata,
+            S_AXIS_tlast => s_mac2_s_axis_tlast,
+            S_AXIS_tready => s_mac2_s_axis_tready,
+            S_AXIS_tvalid => s_mac2_s_axis_tvalid,
+            
+            bias => mac2_bias
+      );
+
+
+
+    dsp_mac_3 : axis_dsp_mac_0
+        port map (
+            ACLK => clk,
+            ARESETN => rst,
+            
+            M_AXIS_tdata => s_mac3_m_axis_tdata,
+            M_AXIS_tlast => s_mac3_m_axis_tlast,
+            M_AXIS_tready => s_mac3_m_axis_tready,
+            M_AXIS_tvalid => s_mac3_m_axis_tvalid,
+            
+            S_AXIS_tdata => s_mac3_s_axis_tdata,
+            S_AXIS_tlast => s_mac3_s_axis_tlast,
+            S_AXIS_tready => s_mac3_s_axis_tready,
+            S_AXIS_tvalid => s_mac3_s_axis_tvalid,
+            
+            bias => mac3_bias
+      );
+
     
-    g_mac0: entity work.conv_mac
-        generic map(
-            C_DATA_WIDTH => MAC_DATA_WIDTH,
-            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
-        )
-        port map(
-            -- AXIS slave data interface
-            S_AXIS_TREADY => s_mac0_s_axis_tready,
-            S_AXIS_TDATA => s_mac0_s_axis_tdata,
-            S_AXIS_TLAST => s_mac0_s_axis_tlast,
-            S_AXIS_TVALID => s_mac0_s_axis_tvalid,
-
-            bias => mac0_bias,
-    
-            -- AXIS master accumulate result out interface
-            M_AXIS_TVALID => s_mac0_m_axis_tvalid,
-            M_AXIS_TDATA => s_mac0_m_axis_tdata,
-            M_AXIS_TLAST => s_mac0_m_axis_tlast,
-            M_AXIS_TREADY => s_mac0_m_axis_tready,
-
-            rst => rst,
-            clk => clk
-        );
-
-    g_mac1: entity work.conv_mac
-        generic map(
-            C_DATA_WIDTH => MAC_DATA_WIDTH,
-            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
-        )
-        port map(
-            -- AXIS slave data interface
-            S_AXIS_TREADY => s_mac1_s_axis_tready,
-            S_AXIS_TDATA => s_mac1_s_axis_tdata,
-            S_AXIS_TLAST => s_mac1_s_axis_tlast,
-            S_AXIS_TVALID => s_mac1_s_axis_tvalid,
-
-            bias => mac1_bias,
-    
-            -- AXIS master accumulate result out interface
-            M_AXIS_TREADY => s_mac1_m_axis_tready,
-            M_AXIS_TDATA => s_mac1_m_axis_tdata,
-            M_AXIS_TLAST => s_mac1_m_axis_tlast,
-            M_AXIS_TVALID => s_mac1_m_axis_tvalid,
-
-            rst => rst,
-            clk => clk
-        );
-
-    g_mac2: entity work.conv_mac
-        generic map(
-            C_DATA_WIDTH => MAC_DATA_WIDTH,
-            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
-        )
-        port map(
-            -- AXIS slave data interface
-            S_AXIS_TREADY => s_mac2_s_axis_tready,
-            S_AXIS_TDATA => s_mac2_s_axis_tdata,
-            S_AXIS_TLAST => s_mac2_s_axis_tlast,
-            S_AXIS_TVALID => s_mac2_s_axis_tvalid,
-
-            bias => mac2_bias,
-    
-            -- AXIS master accumulate result out interface
-            M_AXIS_TREADY => s_mac2_m_axis_tready,
-            M_AXIS_TDATA => s_mac2_m_axis_tdata,
-            M_AXIS_TLAST => s_mac2_m_axis_tlast,
-            M_AXIS_TVALID => s_mac2_m_axis_tvalid,
-
-            rst => rst,
-            clk => clk
-        );
-
-    g_mac3: entity work.conv_mac
-        generic map(
-            C_DATA_WIDTH => MAC_DATA_WIDTH,
-            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
-        )
-        port map(
-            -- AXIS slave data interface
-            S_AXIS_TREADY => s_mac3_s_axis_tready,
-            S_AXIS_TDATA => s_mac3_s_axis_tdata,
-            S_AXIS_TLAST => s_mac3_s_axis_tlast,
-            S_AXIS_TVALID => s_mac3_s_axis_tvalid,
-
-            bias => mac3_bias,
-    
-            -- AXIS master accumulate result out interface
-            M_AXIS_TREADY => s_mac3_m_axis_tready,
-            M_AXIS_TDATA => s_mac3_m_axis_tdata,
-            M_AXIS_TLAST => s_mac3_m_axis_tlast,
-            M_AXIS_TVALID => s_mac3_m_axis_tvalid,
-
-            rst => rst,
-            clk => clk
-        );
+--    g_mac0: entity work.conv_mac
+--        generic map(
+--            C_DATA_WIDTH => MAC_DATA_WIDTH,
+--            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
+--        )
+--        port map(
+--            -- AXIS slave data interface
+--            S_AXIS_TREADY => s_mac0_s_axis_tready,
+--            S_AXIS_TDATA => s_mac0_s_axis_tdata,
+--            S_AXIS_TLAST => s_mac0_s_axis_tlast,
+--            S_AXIS_TVALID => s_mac0_s_axis_tvalid,
+--
+--            bias => mac0_bias,
+--    
+--            -- AXIS master accumulate result out interface
+--            M_AXIS_TVALID => s_mac0_m_axis_tvalid,
+--            M_AXIS_TDATA => s_mac0_m_axis_tdata,
+--            M_AXIS_TLAST => s_mac0_m_axis_tlast,
+--            M_AXIS_TREADY => s_mac0_m_axis_tready,
+--
+--            rst => rst,
+--            clk => clk
+--        );
+--
+--    g_mac1: entity work.conv_mac
+--        generic map(
+--            C_DATA_WIDTH => MAC_DATA_WIDTH,
+--            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
+--        )
+--        port map(
+--            -- AXIS slave data interface
+--            S_AXIS_TREADY => s_mac1_s_axis_tready,
+--            S_AXIS_TDATA => s_mac1_s_axis_tdata,
+--            S_AXIS_TLAST => s_mac1_s_axis_tlast,
+--            S_AXIS_TVALID => s_mac1_s_axis_tvalid,
+--
+--            bias => mac1_bias,
+--    
+--            -- AXIS master accumulate result out interface
+--            M_AXIS_TREADY => s_mac1_m_axis_tready,
+--            M_AXIS_TDATA => s_mac1_m_axis_tdata,
+--            M_AXIS_TLAST => s_mac1_m_axis_tlast,
+--            M_AXIS_TVALID => s_mac1_m_axis_tvalid,
+--
+--            rst => rst,
+--            clk => clk
+--        );
+--
+--    g_mac2: entity work.conv_mac
+--        generic map(
+--            C_DATA_WIDTH => MAC_DATA_WIDTH,
+--            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
+--        )
+--        port map(
+--            -- AXIS slave data interface
+--            S_AXIS_TREADY => s_mac2_s_axis_tready,
+--            S_AXIS_TDATA => s_mac2_s_axis_tdata,
+--            S_AXIS_TLAST => s_mac2_s_axis_tlast,
+--            S_AXIS_TVALID => s_mac2_s_axis_tvalid,
+--
+--            bias => mac2_bias,
+--    
+--            -- AXIS master accumulate result out interface
+--            M_AXIS_TREADY => s_mac2_m_axis_tready,
+--            M_AXIS_TDATA => s_mac2_m_axis_tdata,
+--            M_AXIS_TLAST => s_mac2_m_axis_tlast,
+--            M_AXIS_TVALID => s_mac2_m_axis_tvalid,
+--
+--            rst => rst,
+--            clk => clk
+--        );
+--
+--    g_mac3: entity work.conv_mac
+--        generic map(
+--            C_DATA_WIDTH => MAC_DATA_WIDTH,
+--            C_OUTPUT_DATA_WIDTH => MAC_OUTPUT_DATA_WIDTH
+--        )
+--        port map(
+--            -- AXIS slave data interface
+--            S_AXIS_TREADY => s_mac3_s_axis_tready,
+--            S_AXIS_TDATA => s_mac3_s_axis_tdata,
+--            S_AXIS_TLAST => s_mac3_s_axis_tlast,
+--            S_AXIS_TVALID => s_mac3_s_axis_tvalid,
+--
+--            bias => mac3_bias,
+--    
+--            -- AXIS master accumulate result out interface
+--            M_AXIS_TREADY => s_mac3_m_axis_tready,
+--            M_AXIS_TDATA => s_mac3_m_axis_tdata,
+--            M_AXIS_TLAST => s_mac3_m_axis_tlast,
+--            M_AXIS_TVALID => s_mac3_m_axis_tvalid,
+--
+--            rst => rst,
+--            clk => clk
+--        );
 
     -- Output to BRAM and mark convolution complete when done
 
@@ -573,7 +757,7 @@ begin
             
             -- doing this so index_gen can drive conv_complete for testing
             -- conv_complete => conv_complete,
-            conv_complete => open,
+            conv_complete => conv_complete,
             conv_idle => conv_idle,
             clk => clk,
             rst => rst

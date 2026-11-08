@@ -1,0 +1,31 @@
+{
+	"version": "1.0",
+	"modules": {
+		"axis_dsp_mac": {
+			"proto_instances": {
+				"/master_controller_0/S_AXIS": {
+					"interface": "xilinx.com:interface:axis:1.0",
+					"ports": {
+						"ACLK": { "actual": "ACLK"},
+						"ARESETN": { "actual": "ARESETN"},
+						"TDATA": { "actual": "S_AXIS_TDATA"},
+						"TLAST": { "actual": "S_AXIS_TLAST"},
+						"TREADY": { "actual": "S_AXIS_TREADY"},
+						"TVALID": { "actual": "S_AXIS_TVALID"}
+					}
+				},
+				"/slave_controller_0/M_AXIS": {
+					"interface": "xilinx.com:interface:axis:1.0",
+					"ports": {
+						"ACLK": { "actual": "ACLK"},
+						"ARESETN": { "actual": "ARESETN"},
+						"TDATA": { "actual": "M_AXIS_TDATA"},
+						"TLAST": { "actual": "M_AXIS_TLAST"},
+						"TREADY": { "actual": "M_AXIS_TREADY"},
+						"TVALID": { "actual": "M_AXIS_TVALID"}
+					}
+				}
+			}
+		}
+	}
+}

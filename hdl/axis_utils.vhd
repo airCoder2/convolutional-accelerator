@@ -50,7 +50,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if (rst = '1') then
+            if (rst = '0') then
                 s_pipe_tlast <= '0';
                 s_pipe_tvalid <= '0';
                 s_pipe_tid <= (others => '0');
@@ -125,7 +125,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if (rst = '1') then
+            if (rst = '0') then
                 s_index <= (others => '0');
             elsif (M_AXIS_TREADY = '1' and s_m_axis_tvalid = '1') then
                 s_index <= std_logic_vector(unsigned(s_index) + 1);

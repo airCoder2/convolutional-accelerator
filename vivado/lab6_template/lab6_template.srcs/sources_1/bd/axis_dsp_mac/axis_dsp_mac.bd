@@ -1,0 +1,716 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x6483FB00F7EE66AB",
+      "device": "xc7z020clg484-1",
+      "name": "axis_dsp_mac",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2020.1",
+      "validated": "true"
+    },
+    "design_tree": {
+      "shift_reg_0": "",
+      "xbip_dsp48_macro_0": "",
+      "xlslice_0": "",
+      "master_controller_0": "",
+      "slave_controller_0": "",
+      "util_vector_logic_0": ""
+    },
+    "interface_ports": {
+      "S_AXIS": {
+        "mode": "Slave",
+        "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+        "parameters": {
+          "TDATA_NUM_BYTES": {
+            "value": "2"
+          },
+          "TDEST_WIDTH": {
+            "value": "0"
+          },
+          "TID_WIDTH": {
+            "value": "0"
+          },
+          "TUSER_WIDTH": {
+            "value": "0"
+          },
+          "HAS_TREADY": {
+            "value": "1"
+          },
+          "HAS_TSTRB": {
+            "value": "0"
+          },
+          "HAS_TKEEP": {
+            "value": "0"
+          },
+          "HAS_TLAST": {
+            "value": "1"
+          },
+          "FREQ_HZ": {
+            "value": "100000000",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "axis_dsp_mac_ACLK_0",
+            "value_src": "default"
+          },
+          "LAYERED_METADATA": {
+            "value": "undef"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          }
+        }
+      },
+      "M_AXIS": {
+        "mode": "Master",
+        "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+        "parameters": {
+          "TDATA_NUM_BYTES": {
+            "value": "4",
+            "value_src": "const_prop"
+          },
+          "TDEST_WIDTH": {
+            "value": "0",
+            "value_src": "const_prop"
+          },
+          "TID_WIDTH": {
+            "value": "0",
+            "value_src": "const_prop"
+          },
+          "TUSER_WIDTH": {
+            "value": "0",
+            "value_src": "const_prop"
+          },
+          "HAS_TREADY": {
+            "value": "1",
+            "value_src": "const_prop"
+          },
+          "HAS_TSTRB": {
+            "value": "0",
+            "value_src": "const_prop"
+          },
+          "HAS_TKEEP": {
+            "value": "0",
+            "value_src": "const_prop"
+          },
+          "HAS_TLAST": {
+            "value": "1",
+            "value_src": "const_prop"
+          },
+          "FREQ_HZ": {
+            "value": "100000000",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "axis_dsp_mac_ACLK_0",
+            "value_src": "default"
+          },
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          }
+        }
+      }
+    },
+    "ports": {
+      "ACLK": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_BUSIF": {
+            "value": "M_AXIS:S_AXIS"
+          },
+          "ASSOCIATED_RESET": {
+            "value": "ARESETN"
+          },
+          "CLK_DOMAIN": {
+            "value": "axis_dsp_mac_ACLK_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000",
+            "value_src": "default"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000",
+            "value_src": "default"
+          }
+        }
+      },
+      "ARESETN": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_LOW",
+            "value_src": "default"
+          }
+        }
+      },
+      "bias": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      }
+    },
+    "components": {
+      "shift_reg_0": {
+        "vlnv": "xilinx.com:module_ref:shift_reg:1.0",
+        "xci_name": "axis_dsp_mac_shift_reg_0_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "shift_reg",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "i_clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "i_reset",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "axis_dsp_mac_ACLK_0",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "i_reset": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "i_CE": {
+            "direction": "I"
+          },
+          "i_data": {
+            "direction": "I"
+          },
+          "o_data": {
+            "direction": "O"
+          }
+        }
+      },
+      "xbip_dsp48_macro_0": {
+        "vlnv": "xilinx.com:ip:xbip_dsp48_macro:3.0",
+        "xci_name": "axis_dsp_mac_xbip_dsp48_macro_0_0",
+        "parameters": {
+          "a_binarywidth": {
+            "value": "0"
+          },
+          "a_width": {
+            "value": "8"
+          },
+          "areg_3": {
+            "value": "true"
+          },
+          "areg_4": {
+            "value": "true"
+          },
+          "b_binarywidth": {
+            "value": "0"
+          },
+          "b_width": {
+            "value": "8"
+          },
+          "breg_3": {
+            "value": "true"
+          },
+          "breg_4": {
+            "value": "true"
+          },
+          "c_binarywidth": {
+            "value": "0"
+          },
+          "c_width": {
+            "value": "32"
+          },
+          "concat_binarywidth": {
+            "value": "0"
+          },
+          "concat_width": {
+            "value": "48"
+          },
+          "creg_3": {
+            "value": "true"
+          },
+          "creg_4": {
+            "value": "true"
+          },
+          "creg_5": {
+            "value": "true"
+          },
+          "d_width": {
+            "value": "18"
+          },
+          "has_ce": {
+            "value": "true"
+          },
+          "has_sclr": {
+            "value": "true"
+          },
+          "instruction1": {
+            "value": "A*B+P"
+          },
+          "instruction2": {
+            "value": "A*B+C"
+          },
+          "mreg_5": {
+            "value": "true"
+          },
+          "opreg_3": {
+            "value": "true"
+          },
+          "opreg_4": {
+            "value": "true"
+          },
+          "opreg_5": {
+            "value": "true"
+          },
+          "pcin_binarywidth": {
+            "value": "0"
+          },
+          "preg_6": {
+            "value": "true"
+          }
+        }
+      },
+      "xlslice_0": {
+        "vlnv": "xilinx.com:ip:xlslice:1.0",
+        "xci_name": "axis_dsp_mac_xlslice_0_0",
+        "parameters": {
+          "DIN_FROM": {
+            "value": "31"
+          },
+          "DIN_WIDTH": {
+            "value": "48"
+          },
+          "DOUT_WIDTH": {
+            "value": "32"
+          }
+        }
+      },
+      "master_controller_0": {
+        "vlnv": "xilinx.com:module_ref:master_controller:1.0",
+        "xci_name": "axis_dsp_mac_master_controller_0_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "master_controller",
+          "boundary_crc": "0x0"
+        },
+        "interface_ports": {
+          "S_AXIS": {
+            "mode": "Slave",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "2",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "axis_dsp_mac_ACLK_0",
+                "value_src": "default_prop"
+              },
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "user_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "S_AXIS_TDATA",
+                "direction": "I",
+                "left": "15",
+                "right": "0"
+              },
+              "TLAST": {
+                "physical_name": "S_AXIS_TLAST",
+                "direction": "I"
+              },
+              "TVALID": {
+                "physical_name": "S_AXIS_TVALID",
+                "direction": "I"
+              },
+              "TREADY": {
+                "physical_name": "S_AXIS_TREADY",
+                "direction": "O"
+              }
+            }
+          }
+        },
+        "ports": {
+          "ACLK": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "S_AXIS",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "ARESETN",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "axis_dsp_mac_ACLK_0",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "ARESETN": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          },
+          "bias": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "mac_A_out": {
+            "direction": "O",
+            "left": "7",
+            "right": "0",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": "",
+                "value_src": "weak"
+              }
+            }
+          },
+          "mac_B_out": {
+            "direction": "O",
+            "left": "7",
+            "right": "0",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": "",
+                "value_src": "weak"
+              }
+            }
+          },
+          "mac_C_out": {
+            "direction": "O",
+            "left": "31",
+            "right": "0",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": "",
+                "value_src": "weak"
+              }
+            }
+          },
+          "mac_sel_out": {
+            "direction": "O",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": "",
+                "value_src": "weak"
+              }
+            }
+          },
+          "mac_valid_tlast_out": {
+            "direction": "O"
+          },
+          "slave_ready_in": {
+            "direction": "I"
+          }
+        }
+      },
+      "slave_controller_0": {
+        "vlnv": "xilinx.com:module_ref:slave_controller:1.0",
+        "xci_name": "axis_dsp_mac_slave_controller_0_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "slave_controller",
+          "boundary_crc": "0x0"
+        },
+        "interface_ports": {
+          "M_AXIS": {
+            "mode": "Master",
+            "vlnv": "xilinx.com:interface:axis_rtl:1.0",
+            "parameters": {
+              "TDATA_NUM_BYTES": {
+                "value": "4",
+                "value_src": "constant"
+              },
+              "TDEST_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TID_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "TUSER_WIDTH": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TREADY": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "HAS_TSTRB": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TKEEP": {
+                "value": "0",
+                "value_src": "constant"
+              },
+              "HAS_TLAST": {
+                "value": "1",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "axis_dsp_mac_ACLK_0",
+                "value_src": "default_prop"
+              }
+            },
+            "port_maps": {
+              "TDATA": {
+                "physical_name": "M_AXIS_TDATA",
+                "direction": "O",
+                "left": "31",
+                "right": "0"
+              },
+              "TLAST": {
+                "physical_name": "M_AXIS_TLAST",
+                "direction": "O"
+              },
+              "TVALID": {
+                "physical_name": "M_AXIS_TVALID",
+                "direction": "O"
+              },
+              "TREADY": {
+                "physical_name": "M_AXIS_TREADY",
+                "direction": "I"
+              }
+            }
+          }
+        },
+        "ports": {
+          "ACLK": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "M_AXIS",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "ARESETN",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "axis_dsp_mac_ACLK_0",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "ARESETN": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
+          },
+          "slave_ready_out": {
+            "direction": "O",
+            "parameters": {
+              "POLARITY": {
+                "value": "",
+                "value_src": "weak"
+              }
+            }
+          },
+          "dsp_acc_in": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "acc_valid_in": {
+            "direction": "I"
+          }
+        }
+      },
+      "util_vector_logic_0": {
+        "vlnv": "xilinx.com:ip:util_vector_logic:2.0",
+        "xci_name": "axis_dsp_mac_util_vector_logic_0_0",
+        "parameters": {
+          "C_OPERATION": {
+            "value": "not"
+          },
+          "C_SIZE": {
+            "value": "1"
+          }
+        }
+      }
+    },
+    "interface_nets": {
+      "S_AXIS": {
+        "interface_ports": [
+          "S_AXIS",
+          "master_controller_0/S_AXIS"
+        ]
+      },
+      "M_AXIS": {
+        "interface_ports": [
+          "M_AXIS",
+          "slave_controller_0/M_AXIS"
+        ]
+      }
+    },
+    "nets": {
+      "xbip_dsp48_macro_0_P": {
+        "ports": [
+          "xbip_dsp48_macro_0/P",
+          "xlslice_0/Din"
+        ]
+      },
+      "xlslice_0_Dout": {
+        "ports": [
+          "xlslice_0/Dout",
+          "slave_controller_0/dsp_acc_in"
+        ]
+      },
+      "ACLK": {
+        "ports": [
+          "ACLK",
+          "xbip_dsp48_macro_0/CLK",
+          "shift_reg_0/i_clk",
+          "master_controller_0/ACLK",
+          "slave_controller_0/ACLK"
+        ]
+      },
+      "ARESETN": {
+        "ports": [
+          "ARESETN",
+          "shift_reg_0/i_reset",
+          "master_controller_0/ARESETN",
+          "slave_controller_0/ARESETN",
+          "util_vector_logic_0/Op1"
+        ]
+      },
+      "slave_controller_0_slave_ready_out": {
+        "ports": [
+          "slave_controller_0/slave_ready_out",
+          "xbip_dsp48_macro_0/CE",
+          "shift_reg_0/i_CE",
+          "master_controller_0/slave_ready_in"
+        ]
+      },
+      "master_controller_0_mac_valid_tlast_out": {
+        "ports": [
+          "master_controller_0/mac_valid_tlast_out",
+          "shift_reg_0/i_data"
+        ]
+      },
+      "shift_reg_0_o_data": {
+        "ports": [
+          "shift_reg_0/o_data",
+          "slave_controller_0/acc_valid_in"
+        ]
+      },
+      "master_controller_0_mac_sel_out": {
+        "ports": [
+          "master_controller_0/mac_sel_out",
+          "xbip_dsp48_macro_0/SEL"
+        ]
+      },
+      "master_controller_0_mac_C_out": {
+        "ports": [
+          "master_controller_0/mac_C_out",
+          "xbip_dsp48_macro_0/C"
+        ]
+      },
+      "master_controller_0_mac_B_out": {
+        "ports": [
+          "master_controller_0/mac_B_out",
+          "xbip_dsp48_macro_0/B"
+        ]
+      },
+      "master_controller_0_mac_A_out": {
+        "ports": [
+          "master_controller_0/mac_A_out",
+          "xbip_dsp48_macro_0/A"
+        ]
+      },
+      "bias": {
+        "ports": [
+          "bias",
+          "master_controller_0/bias"
+        ]
+      },
+      "util_vector_logic_0_Res": {
+        "ports": [
+          "util_vector_logic_0/Res",
+          "xbip_dsp48_macro_0/SCLR"
+        ]
+      }
+    }
+  }
+}
