@@ -43,6 +43,6 @@ architecture Behavioral of dequantization is
 
 begin
 
--- TODO
+        S_AXIS_TREADY  <= '1';
 
 end Behavioral;

@@ -44,8 +44,8 @@ begin
 
     S_AXIS_TREADY <= s_pipe_tready;
 
-    -- The register is capable of accepting data when it has no data or if all the macs are ready to accept what's currently stored
-    s_pipe_tready <= not s_pipe_tvalid or M_AXIS_TREADY; -- ME: this signal is what drives index generator's tready
+    -- The register is capable of accepting data when it has no data or if devices are ready to accept what's currently stored
+    s_pipe_tready <= not s_pipe_tvalid or M_AXIS_TREADY;
 
     process(clk)
     begin

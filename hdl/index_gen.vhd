@@ -100,8 +100,8 @@ begin
                     if(s_ow = unsigned(output_w) - 1) then
                         if(s_fc = unsigned(filter_c) - 1) then
                             if(s_fh = unsigned(filter_h) - 1) then
-                                if (s_fw = unsigned(filter_w) - 2) then
-                                    -- CONVOLUTION IS COMPLETE (NEXT CYCLE)
+                                if (s_fw = unsigned(filter_w) - 1) then
+                                    -- CONVOLUTION IS COMPLETE this cycle, so make sure next cycle's index is not valid
                                     s_conv_done <= '1';
                                 end if;
                             end if;

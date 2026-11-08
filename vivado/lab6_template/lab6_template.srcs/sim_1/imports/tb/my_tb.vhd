@@ -13,8 +13,8 @@ entity conv_accelerator_tb is
 end conv_accelerator_tb;
 
 architecture Behavioral of conv_accelerator_tb is
-    constant CLK_PERIOD : time := 1 ns;
-    constant RESET_TIME : time := 10 ns;
+    constant CLK_PERIOD : time := 200 ps;
+    constant RESET_TIME : time := 5 ns;
 
     constant DIM_WIDTH : integer := 12; -- Max dim size is 2048 in a dense layer
     constant INPUT_ADDR_WIDTH : integer := 7; -- Max input size is 60*60*32 < 2^17
@@ -661,31 +661,31 @@ begin
             assert FALSE report "TOO MANY TRANSACTIONS!!!";
         end if;
     end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_s_out_combiner_m_axis_tdata : std_logic_vector(512-1 downto 0) := "00000000000000000000111111010000000000000000000000001011010000111111111111111111111110010100110000000000000000000000000011110000000000000000000000010101011111100000000000000000000011110111110111111111111111111111011010000110000000000000000000000010010010101111111111111111111111110101000000000000000000000000000001010111111111111111111111111110101001000000000000000000000000010101101100000000000000000001001011000010000000000000000000001101100000011111111111111111111101111100001000000000000000001000001100000100";
---        constant EXPECTED_VALUES_s_out_combiner_m_axis_tlast : std_logic_vector(16-1 downto 0) := "1111111111111111";
---        constant EXPECTED_VALUES_s_out_combiner_m_axis_tid : std_logic_vector(32-1 downto 0) := "11100100111001001110010011100100";
---    begin
---        EXPECTED_s_out_combiner_m_axis_tdata <= EXPECTED_VALUES_s_out_combiner_m_axis_tdata((i+1)*32-1 downto i*32);
---        EXPECTED_s_out_combiner_m_axis_tlast <= EXPECTED_VALUES_s_out_combiner_m_axis_tlast(i*1);
---        EXPECTED_s_out_combiner_m_axis_tid <= EXPECTED_VALUES_s_out_combiner_m_axis_tid((i+1)*2-1 downto i*2);
---        wait until rising_edge(clk) and TEST_s_out_combiner_m_axis_tready = '1' and TEST_s_out_combiner_m_axis_tvalid = '1';
---        assert TEST_s_out_combiner_m_axis_tdata = EXPECTED_s_out_combiner_m_axis_tdata report "ASSERTION FAILURE";
---        if not (TEST_s_out_combiner_m_axis_tdata = EXPECTED_s_out_combiner_m_axis_tdata) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
---        assert TEST_s_out_combiner_m_axis_tlast = EXPECTED_s_out_combiner_m_axis_tlast report "ASSERTION FAILURE";
---        if not (TEST_s_out_combiner_m_axis_tlast = EXPECTED_s_out_combiner_m_axis_tlast) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
---        assert TEST_s_out_combiner_m_axis_tid = EXPECTED_s_out_combiner_m_axis_tid report "ASSERTION FAILURE";
---        if not (TEST_s_out_combiner_m_axis_tid = EXPECTED_s_out_combiner_m_axis_tid) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 16) then
---            wait until rising_edge(clk) and TEST_s_out_combiner_m_axis_tready = '1' and TEST_s_out_combiner_m_axis_tvalid = '1';
---            TEST_s_out_combiner_m_axis_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_s_out_combiner_m_axis_tdata : std_logic_vector(512-1 downto 0) := "00000000000000000000111111010000000000000000000000001011010000111111111111111111111110010100110000000000000000000000000011110000000000000000000000010101011111100000000000000000000011110111110111111111111111111111011010000110000000000000000000000010010010101111111111111111111111110101000000000000000000000000000001010111111111111111111111111110101001000000000000000000000000010101101100000000000000000001001011000010000000000000000000001101100000011111111111111111111101111100001000000000000000001000001100000100";
+        constant EXPECTED_VALUES_s_out_combiner_m_axis_tlast : std_logic_vector(16-1 downto 0) := "1111111111111111";
+        constant EXPECTED_VALUES_s_out_combiner_m_axis_tid : std_logic_vector(32-1 downto 0) := "11100100111001001110010011100100";
+    begin
+        EXPECTED_s_out_combiner_m_axis_tdata <= EXPECTED_VALUES_s_out_combiner_m_axis_tdata((i+1)*32-1 downto i*32);
+        EXPECTED_s_out_combiner_m_axis_tlast <= EXPECTED_VALUES_s_out_combiner_m_axis_tlast(i*1);
+        EXPECTED_s_out_combiner_m_axis_tid <= EXPECTED_VALUES_s_out_combiner_m_axis_tid((i+1)*2-1 downto i*2);
+        wait until rising_edge(clk) and TEST_s_out_combiner_m_axis_tready = '1' and TEST_s_out_combiner_m_axis_tvalid = '1';
+        assert TEST_s_out_combiner_m_axis_tdata = EXPECTED_s_out_combiner_m_axis_tdata report "ASSERTION FAILURE";
+        if not (TEST_s_out_combiner_m_axis_tdata = EXPECTED_s_out_combiner_m_axis_tdata) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
+        assert TEST_s_out_combiner_m_axis_tlast = EXPECTED_s_out_combiner_m_axis_tlast report "ASSERTION FAILURE";
+        if not (TEST_s_out_combiner_m_axis_tlast = EXPECTED_s_out_combiner_m_axis_tlast) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
+        assert TEST_s_out_combiner_m_axis_tid = EXPECTED_s_out_combiner_m_axis_tid report "ASSERTION FAILURE";
+        if not (TEST_s_out_combiner_m_axis_tid = EXPECTED_s_out_combiner_m_axis_tid) then TEST_s_out_combiner_m_axis_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 16) then
+            wait until rising_edge(clk) and TEST_s_out_combiner_m_axis_tready = '1' and TEST_s_out_combiner_m_axis_tvalid = '1';
+            TEST_s_out_combiner_m_axis_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
 --    
 --
 --    process
