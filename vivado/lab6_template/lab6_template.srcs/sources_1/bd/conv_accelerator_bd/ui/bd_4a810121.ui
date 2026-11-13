@@ -39,6 +39,13 @@ preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 5 330 410 710 270 1070 480
 preplace netloc invert_filters_1 1 4 2 1550 280 NJ
 preplace netloc sel_1 1 4 2 1570 250 1930J
 preplace netloc invert_activations_1 1 4 2 1560 260 NJ
+preplace netloc axi_crossbar_0_M00_AXI 1 3 1 1050 120n
+preplace netloc axi_crossbar_1_M00_AXI 1 5 1 N 390
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER1 1 4 2 N 100 NJ
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER3 1 4 2 N 140 NJ
+preplace netloc axi_protocol_convert_3_M_AXI 1 6 1 N 410
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER2 1 4 2 N 120 NJ
+preplace netloc BRAM_PORT_OUTPUT_0_1 1 4 2 1580 180 NJ
 preplace netloc axi_crossbar_0_M01_AXI 1 3 1 N 360
 preplace netloc axi_cdma_0_M_AXI 1 4 1 N 380
 preplace netloc processing_system7_0_M_AXI_GP0 1 1 7 340 520 NJ 520 NJ 520 NJ 520 NJ 520 NJ 520 2860
@@ -48,13 +55,6 @@ preplace netloc axi_crossbar_1_M01_AXI 1 5 1 1920 200n
 preplace netloc BRAM_PORT_INPUT_0_1 1 4 2 1580 70 1920J
 preplace netloc axi_protocol_convert_0_M_AXI 1 2 1 N 330
 preplace netloc processing_system7_0_FIXED_IO 1 7 1 NJ 400
-preplace netloc axi_crossbar_0_M00_AXI 1 3 1 1050 120n
-preplace netloc axi_crossbar_1_M00_AXI 1 5 1 N 390
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER1 1 4 2 N 100 NJ
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER3 1 4 2 N 140 NJ
-preplace netloc axi_protocol_convert_3_M_AXI 1 6 1 N 410
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER2 1 4 2 N 120 NJ
-preplace netloc BRAM_PORT_OUTPUT_0_1 1 4 2 1580 180 NJ
 preplace cgraphic comment_2 place bot 1693 230 textcolor 4 linecolor 3 linewidth 2
 preplace cgraphic comment_1 place bot 1688 29 textcolor 4 linecolor 3 linewidth 2
 preplace cgraphic comment_0 place top 568 -306 textcolor 4 linecolor 3 linewidth 2
@@ -63,7 +63,7 @@ pagesize -pg 1 -db -bbox -sgen -50 -60 3000 550
 "
 }
 {
-   """"""""""""""""""""""""""""""""""""""""da_clkrst_cnt"""""""""""""""""""""""""""""""""""""""":"1"
+   """"""""""""""""""""""""""""""""""""""""""da_clkrst_cnt"""""""""""""""""""""""""""""""""""""""""":"1"
 }
 {
    "/comment_0":"comment_0",
