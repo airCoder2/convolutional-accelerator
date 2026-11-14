@@ -76,16 +76,17 @@ architecture Behavioral of output_storage is
 begin
 
     BRAM_clk <= clk;
-    BRAM_rst <= '0';
-
 
     -- combinational next state logic
     process(all)
     begin
-        next_state    <= state;
+        next_state    <= IDLE;
         S_AXIS_TREADY <= '0';
         BRAM_we <= (others => '0'); -- normally we are not writing to bram
         BRAM_en  <= '1';
+        BRAM_addr <= (others => '0');
+        BRAM_din <= (others => '0');
+
 
         case current_state is
             when IDLE =>
@@ -98,19 +99,63 @@ begin
             when READ =>
                 S_AXIS_TREADY <= '0';
                 -- we are just adding s_output_idx rather than leaving out the last 2 bits, because BRAM is set to byte supporting mode
-                BRAM_addr  <= unsigned(initial_offset) + unsigned(S_AXIS_TID) * unsigned(elements_per_channel) + s_output_idx;
+                if (max_pooling = '0') then
+                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                  s_output_idx(DIM_WIDTH-1 downto 2) + unsigned(initial_offset), BRAM_addr'length));
+                else
+                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                  s_output_idx(DIM_WIDTH-1 downto 3) + unsigned(initial_offset), BRAM_addr'length));
+                end if;
                                            
                 next_state <= WRITE;
 
             when WRITE =>
                 -- since we are writing the entire thing back, we can safely put all of them to 1
                 BRAM_we <= "1111";
-                BRAM_addr  <= unsigned(initial_offset) + unsigned(S_AXIS_TID) * unsigned(elements_per_channel) + s_output_idx;
-                with s_output_idx(1 downto 0) select
-                    BRAM_dout <= BRAM_din(31 downto 8) & s_data when "00",
-                                 BRAM_din(31 downto 16) & s_data & BRAM_din(7 downto 0) when "01",
-                                 BRAM_din(31 downto 24) & s_data & BRAM_din(15 downto 0) when "10",
-                                 s_data & BRAM_din(24 downto 0) when others;
+
+                if (max_pooling = '0') then
+                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                  s_output_idx(DIM_WIDTH-1 downto 2) + unsigned(initial_offset), BRAM_addr'length));
+                else
+                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                  s_output_idx(DIM_WIDTH-1 downto 3) + unsigned(initial_offset), BRAM_addr'length));
+                end if;
+
+                -- This tells us which byte we should be modifying
+                if (max_pooling = '0') then
+                    case s_output_idx(1 downto 0) is
+                        when "00"   => BRAM_din <= BRAM_dout(31 downto 8)  & s_data;
+                        when "01"   => BRAM_din <= BRAM_dout(31 downto 16) & s_data & BRAM_dout(7 downto 0);
+                        when "10"   => BRAM_din <= BRAM_dout(31 downto 24) & s_data & BRAM_dout(15 downto 0);
+                        when others => BRAM_din <= s_data & BRAM_dout(23 downto 0);
+                    end case;
+                else
+                    if (s_oh(0) = '0' and s_ow(0) = '0') then -- if this is the first one
+                        case s_output_idx(2 downto 0) is
+                            when "000"   => BRAM_din <= BRAM_dout(31 downto 8) & s_data;
+                            when "010"   => BRAM_din <= BRAM_dout(31 downto 16) & s_data & BRAM_dout(7 downto 0);
+                            when "100"   => BRAM_din <= BRAM_dout(31 downto 24) & s_data & BRAM_dout(15 downto 0);
+                            when "110"   => BRAM_din <= s_data & BRAM_dout(23 downto 0);
+                            when others  => BRAM_din <= (others => '0');
+                        end case;
+                    else
+                        case s_output_idx(2 downto 0) is
+                            when "000" | "001"   => BRAM_din <= BRAM_dout(31 downto 8) & std_logic_vector(maximum(signed(BRAM_dout(7 downto 0)), signed(s_data)));
+
+                            when "010" | "011"   => BRAM_din <= BRAM_dout(31 downto 16) & std_logic_vector(maximum(signed(BRAM_dout(15 downto 8)), signed(s_data)))
+                                                                & BRAM_dout(7 downto 0);
+
+                            when "100" | "101"   => BRAM_din <= BRAM_dout(31 downto 24) & std_logic_vector(maximum(signed(BRAM_dout(23 downto 16)), signed(s_data)))
+                                                                & BRAM_dout(15 downto 0);
+
+                            when "110" | "111"   => BRAM_din <= std_logic_vector(maximum(signed(BRAM_dout(31 downto 24)), signed(s_data))) 
+                                                                & BRAM_dout(23 downto 0);
+                            when others          => BRAM_din <= (others => '0');
+                        end case;
+                        
+                    end if;
+
+                end if;
 
                 next_state <= IDLE;
 
@@ -131,29 +176,56 @@ begin
                 s_data <= (others => '0');
                 current_state    <= IDLE;
 
-                BRAM_rst <= '1';
+                conv_complete <= '0';
+
+                BRAM_rst <= '0';
             else
+                BRAM_rst <= '1';
                 -- Update state register
                 current_state <= next_state;
 
-                -- Action on ACCEPT -> BUSY transition (Handshake edge)
-                if (state = IDLE and next_state = READ) then
+                -- action on accept. This runs when transitioning from IDLE to READ. we register AXIS values
+                if (current_state = IDLE and next_state = READ) then
                     s_data <= S_AXIS_TDATA;
                     s_tid  <= S_AXIS_TID;
                 end if;
 
                 -- Action on BUSY -> IDLE transition (Count increments once)
-                if (state = WRITE and next_state = IDLE and s_tid = "11") then
+                if (current_state = WRITE and next_state = IDLE and s_tid = "11") then
+
+                    if (max_pooling = '0') then
+                        if (s_oh = unsigned(output_h) - 1) then
+                            if (s_ow = unsigned(output_w) - 1) then
+                                    conv_complete <= '1';
+                            end if;
+                        end if;
+                    else
+                        if (s_oh = 2*unsigned(output_h) - 1) then
+                            if (s_ow = 2*unsigned(output_w) - 1) then
+                                    conv_complete <= '1';
+                            end if;
+                        end if;
+                    end if;
+                    
+
                     s_ow <= s_ow + 1;
                     s_output_idx <= s_output_idx + 1; 
 
-                    if(s_ow = unsigned(output_w) - 1) then
-                        s_ow <= 0;
-                        s_oh <= s_oh + 1;
-                        if(max_pooling = '1' and s_oh(0) = '0') then -- if max pooling and s_oh is even then roll back the index
-                            s_output_idx <= s_output_idx - unsigned(output_w) - 1; -- get us to the beginning of the row
-
+                    if (max_pooling = '0') then
+                        if(s_ow = unsigned(output_w) - 1) then
+                            s_ow <= (others => '0');
+                            s_oh <= s_oh + 1;
                         end if;
+                    else
+                        if(s_ow = 2*unsigned(output_w) - 1) then
+                            s_ow <= (others => '0');
+                            s_oh <= s_oh + 1;
+
+                            if(s_oh(0) = '0') then -- if max pooling and s_oh is even then roll back the index
+                                s_output_idx <= s_output_idx - 2*unsigned(output_w) + 1; -- get us to the beginning of the row
+                            end if;
+                        end if;
+
                     end if;
                 end if;
             end if;
