@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------
 -- Output Storage Unit
 --
--- Gregory Ling, 2024
+-- Salah Nasriddinov
 ----------------------------------------------------------------------------------
 
 library work;
@@ -73,12 +73,17 @@ architecture Behavioral of output_storage is
     signal s_tid  :  std_logic_vector(C_TID_WIDTH-1 downto 0); -- latched tid
     signal s_data :  std_logic_vector(DATA_WIDTH-1 downto 0);  -- latched tdata
 
+
+
 begin
 
     BRAM_clk <= clk;
 
     -- combinational next state logic
     process(all)
+
+        variable BRAM_byte_addr : std_logic_vector(31 downto 0);
+
     begin
         next_state    <= IDLE;
         S_AXIS_TREADY <= '0';
@@ -100,11 +105,21 @@ begin
                 S_AXIS_TREADY <= '0';
                 -- we are just adding s_output_idx rather than leaving out the last 2 bits, because BRAM is set to byte supporting mode
                 if (max_pooling = '0') then
-                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
-                                  s_output_idx(DIM_WIDTH-1 downto 2) + unsigned(initial_offset), BRAM_addr'length));
+
+                    -- this is the address in bytes
+                    BRAM_byte_addr := std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                      s_output_idx + unsigned(initial_offset), BRAM_byte_addr'length));
+
+                    -- the way that the testbench wants me to output stuff
+                    -- it wants address to be the first byte of the word that I am trying to acess
+                    BRAM_addr  <= BRAM_byte_addr(31 downto 2) & 0b"00"; 
+
+                    --BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                    --              s_output_idx(DIM_WIDTH-1 downto 2) + unsigned(initial_offset), BRAM_addr'length));
                 else
-                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
-                                  s_output_idx(DIM_WIDTH-1 downto 3) + unsigned(initial_offset), BRAM_addr'length));
+                    BRAM_byte_addr  := std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                       s_output_idx(DIM_WIDTH-1 downto 1) + unsigned(initial_offset), BRAM_addr'length));
+                    BRAM_addr  <= BRAM_byte_addr(31 downto 2) & 0b"00"; 
                 end if;
                                            
                 next_state <= WRITE;
@@ -114,11 +129,17 @@ begin
                 BRAM_we <= "1111";
 
                 if (max_pooling = '0') then
-                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
-                                  s_output_idx(DIM_WIDTH-1 downto 2) + unsigned(initial_offset), BRAM_addr'length));
+                    -- this is the address in bytes
+                    BRAM_byte_addr := std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                      s_output_idx + unsigned(initial_offset), BRAM_byte_addr'length));
+
+                    -- the way that the testbench wants me to output stuff
+                    -- it wants address to be the first byte of the word that I am trying to acess
+                    BRAM_addr  <= BRAM_byte_addr(31 downto 2) & 0b"00"; 
                 else
-                    BRAM_addr  <= std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
-                                  s_output_idx(DIM_WIDTH-1 downto 3) + unsigned(initial_offset), BRAM_addr'length));
+                    BRAM_byte_addr  := std_logic_vector(resize(unsigned(s_tid) * unsigned(elements_per_channel) + 
+                                       s_output_idx(DIM_WIDTH-1 downto 1) + unsigned(initial_offset), BRAM_addr'length));
+                    BRAM_addr  <= BRAM_byte_addr(31 downto 2) & 0b"00"; 
                 end if;
 
                 -- This tells us which byte we should be modifying
@@ -193,40 +214,28 @@ begin
                 -- Action on BUSY -> IDLE transition (Count increments once)
                 if (current_state = WRITE and next_state = IDLE and s_tid = "11") then
 
-                    if (max_pooling = '0') then
-                        if (s_oh = unsigned(output_h) - 1) then
-                            if (s_ow = unsigned(output_w) - 1) then
-                                    conv_complete <= '1';
-                            end if;
-                        end if;
-                    else
-                        if (s_oh = 2*unsigned(output_h) - 1) then
-                            if (s_ow = 2*unsigned(output_w) - 1) then
-                                    conv_complete <= '1';
-                            end if;
+                    -- I have to think about this. Because it might be possible that I have to set it 
+                    -- when transitioning from READ to WRITE with tid = 11 if I want mark complete to be 1
+                    -- during the last write
+                    if (s_oh = unsigned(output_h) - 1) then
+                        if (s_ow = unsigned(output_w) - 1) then
+                                conv_complete <= '1';
                         end if;
                     end if;
                     
-
                     s_ow <= s_ow + 1;
                     s_output_idx <= s_output_idx + 1; 
 
-                    if (max_pooling = '0') then
-                        if(s_ow = unsigned(output_w) - 1) then
-                            s_ow <= (others => '0');
-                            s_oh <= s_oh + 1;
-                        end if;
-                    else
-                        if(s_ow = 2*unsigned(output_w) - 1) then
-                            s_ow <= (others => '0');
-                            s_oh <= s_oh + 1;
-
-                            if(s_oh(0) = '0') then -- if max pooling and s_oh is even then roll back the index
-                                s_output_idx <= s_output_idx - 2*unsigned(output_w) + 1; -- get us to the beginning of the row
-                            end if;
-                        end if;
-
+                    -- when a row is finished, increment the height, and reset width
+                    if(s_ow = unsigned(output_w) - 1) then
+                        s_ow <= (others => '0');
+                        s_oh <= s_oh + 1;
+                        if(s_oh(0) = '0' and max_pooling = '1') then -- if max pooling and s_oh is even then roll back the index
+                            s_output_idx <= resize((s_output_idx - unsigned(output_w) + 1), s_output_idx'length); -- get us to the beginning of the row
                     end if;
+                    end if;
+
+
                 end if;
             end if;
         end if;
