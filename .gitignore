@@ -52,3 +52,20 @@ venv/
 *~
 .DS_Store
 Thumbs.db
+
+# C++ build outputs
+build/
+*.o
+
+# Vitis / Vivado SDK workspaces (generated)
+software_integration/vitis_ws/
+software_integration/workspace/
+.metadata/
+.analytics/
+RemoteSystemsTempFiles/
+.sdk/
+IDE.log
+
+# Exported hardware platforms (generated, large binaries)
+*.xsa
+software_integration/xsas/

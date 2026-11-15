@@ -43,6 +43,18 @@ bram_output_write_data = []
 def indent(str, tabs):
     return str.replace('\n', '\n' + ('    ' * tabs))
 
+def wrap_s32(value):
+    # two's complement 32-bit wrap, matches the 32-bit hardware registers
+    value = int(value) & 0xFFFFFFFF
+    return value - (1 << 32) if value & 0x80000000 else value
+
+def wrap_u32(value):
+    return int(value) & 0xFFFFFFFF
+
+def wrap_s8(value):
+    # q_zero is only 8 bits wide in hardware (q_zero(MAC_DATA_WIDTH-1 downto 0))
+    return ((int(value) + 128) & 0xFF) - 128
+
 def u32_v(value):
     return f'x"{value:08X}"'
     
@@ -76,7 +88,7 @@ def convolve(input, filter, biases, scale, zero, max_pooling, relu, output_initi
 
     control_process += f"""\
 conv_idle <= '1';
-wait for 10ps;
+wait for 5*CLK_PERIOD;
 BRAM_INPUT_data <= x"{('A5'*(BRAM_SIZE_BYTES-len(flat_input)))}{''.join(f'{np.uint8(x):02X}' for x in reversed(flat_input))}";
 BRAM_FILTER0_data <= x"{('A5'*(BRAM_SIZE_BYTES-len(flat_filter0)))}{''.join(f'{np.uint8(x):02X}' for x in reversed(flat_filter0))}";
 BRAM_FILTER1_data <= x"{('A5'*(BRAM_SIZE_BYTES-len(flat_filter1)))}{''.join(f'{np.uint8(x):02X}' for x in reversed(flat_filter1))}";
@@ -89,22 +101,22 @@ filter_h <= x"{np.shape(filter)[2]:08X}";
 filter_c <= x"{np.shape(filter)[1]:08X}";
 output_w <= x"{np.shape(input)[2] - np.shape(filter)[3] + 1:08X}";
 output_h <= x"{np.shape(input)[1] - np.shape(filter)[2] + 1:08X}";
-input_end_diff_fw <= x"{np.uint32(input_end_diff_fw):08X}";
-input_end_diff_fh <= x"{np.uint32(input_end_diff_fh):08X}";
-input_end_diff_fc <= x"{int(input_end_diff_fc) & 0xFFFFFFFF:08X}";
-input_end_diff_ow <= x"{int(input_end_diff_ow)& 0xFFFFFFFF:08X}";
+input_end_diff_fw <= x"{wrap_u32(input_end_diff_fw):08X}";
+input_end_diff_fh <= x"{wrap_u32(input_end_diff_fh):08X}";
+input_end_diff_fc <= x"{wrap_u32(input_end_diff_fc):08X}";
+input_end_diff_ow <= x"{wrap_u32(input_end_diff_ow):08X}";
 output_elements_per_channel <= x"{output_elements_per_channel:08X}";
 output_initial_offset <= x"{output_initial_offset:08X}";
-mac0_bias <= x"{np.uint32(biases[0]):08X}";
-mac1_bias <= x"{np.uint32(biases[1]):08X}";
-mac2_bias <= x"{np.uint32(biases[2]):08X}";
-mac3_bias <= x"{np.uint32(biases[3]):08X}";
-q_scale <= x"{scale:08X}";
-q_zero <= x"{np.uint32(zero):08X}";
-wait for 10ps;
+mac0_bias <= x"{wrap_u32(biases[0]):08X}";
+mac1_bias <= x"{wrap_u32(biases[1]):08X}";
+mac2_bias <= x"{wrap_u32(biases[2]):08X}";
+mac3_bias <= x"{wrap_u32(biases[3]):08X}";
+q_scale <= x"{wrap_u32(scale):08X}";
+q_zero <= x"{wrap_u32(zero):08X}";
+wait for 5*CLK_PERIOD;
 conv_idle <= '0';
 wait until rising_edge(conv_complete);
-wait for 10ps;
+wait for 5*CLK_PERIOD;
 """
 
     ## we have 4 out channels, and depending if max pooling is on or off different output buffers
@@ -117,10 +129,10 @@ wait for 10ps;
             ## and all outputs are basically have the same address but with different offsets
             output_addr = ((int(oh/2)*int(OW/2)) + int(ow/2)) if max_pooling else ((oh * OW) + (ow))
             ##loading the bias
-            out0 = np.int32(biases[0])
-            out1 = np.int32(biases[1])
-            out2 = np.int32(biases[2])
-            out3 = np.int32(biases[3])
+            out0 = wrap_s32(biases[0])
+            out1 = wrap_s32(biases[1])
+            out2 = wrap_s32(biases[2])
+            out3 = wrap_s32(biases[3])
             for fc in range(FC):
                 for fh in range(FH):
                     for fw in range(FW):
@@ -138,19 +150,21 @@ wait for 10ps;
                         filter1_val = filter[1][fc][fh][fw]
                         filter2_val = filter[2][fc][fh][fw]
                         filter3_val = filter[3][fc][fh][fw]
-                        mac0_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter0_val)))
-                        mac1_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter1_val)))
-                        mac2_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter2_val)))
-                        mac3_in_tdata.append((int(np.uint8(input_val)) << 8) | int(np.uint8(filter3_val)))
+                        mac0_in_tdata.append(((int(input_val) & 0xFF) << 8) | (int(filter0_val) & 0xFF))
+                        mac1_in_tdata.append(((int(input_val) & 0xFF) << 8) | (int(filter1_val) & 0xFF))
+                        mac2_in_tdata.append(((int(input_val) & 0xFF) << 8) | (int(filter2_val) & 0xFF))
+                        mac3_in_tdata.append(((int(input_val) & 0xFF) << 8) | (int(filter3_val) & 0xFF))
                         mac0_in_tlast.append(last)
                         mac1_in_tlast.append(last)
                         mac2_in_tlast.append(last)
                         mac3_in_tlast.append(last)
-                        out0 += input_val * filter0_val
-                        out1 += input_val * filter1_val
-                        out2 += input_val * filter2_val
-                        out3 += input_val * filter3_val
+                        out0 += int(input_val) * int(filter0_val)
+                        out1 += int(input_val) * int(filter1_val)
+                        out2 += int(input_val) * int(filter2_val)
+                        out3 += int(input_val) * int(filter3_val)
 
+            ## accumulator is 32 bits in hardware
+            out0, out1, out2, out3 = (wrap_s32(o) for o in (out0, out1, out2, out3))
             ## now one complete pixel has been computed
             mac0_out_tdata.append(out0)
             mac1_out_tdata.append(out1)
@@ -164,9 +178,9 @@ wait for 10ps;
                 combined_out_tdata.append(out)
                 combined_out_tlast.append(True)
                 combined_out_tid.append(i)
-                scaled = (out * scale) >> 32
+                scaled = (out * wrap_s32(scale)) >> 32
                 relued = max(scaled, 0) if relu else scaled
-                zeroed = relued + zero
+                zeroed = relued + wrap_s8(zero)
                 saturated = max(min(zeroed, 127), -128)
                 deq_out_tdata.append(saturated)
                 deq_out_tlast.append(True)
@@ -240,15 +254,20 @@ filters = np.array([
 ])
 
 
-convolve(inputs, filters, [0, 1, 2, 3], 0x4000000, 0, False, False, 0)
+#convolve(inputs, filters, [0, 1, 2, 3], 0x4000000, 0, False, False, 0)
 #convolve(inputs, filters, [0, 1, -2, 0x8A32BC81], 0x7A32BC81, -127, False, False, 0)
-#convolve(np.reshape(range(-20, 20), (2, 5, 4)), filters, [0, 1, 2, 3], 0x7A32BC81, -127, True, True, 0)
-#convolve(np.reshape(range(-30, 30), (2, 5, 6)), filters, [4, 5, 6, 7], 0x7A32BC81, -100, True, True, 4)
-#
+#convolve(np.reshape(range(-30, 30), (2, 5, 6)), filters, [4, 5, 6, 7], 0x7A32BC81, -100, True, True, 4)  # 4x4 output -> 2x2 pooled = 4 bytes/channel
+
+# Old case: 2x2 input, 2x2 filter -> 1x1 output = 1 byte/channel (< 4), so it is disabled
 #inputs = [[[0x40, 0], [0, 0]]]
 #filters = [[[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]]]
-#
 #convolve(inputs, filters, [0x100, 0x100, 0x100, 0x100], 0x40000000, 3, False, True, 0)
+
+# 3x3 input, 2x2 filter -> 2x2 output, no pooling = 4 bytes/channel
+inputs = [[[0x40, 1, 2], [3, 4, 5], [6, 7, 8]]]
+filters = [[[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]], [[[1, 0], [0, 0]]]]
+
+convolve(inputs, filters, [0x100, 0x100, 0x100, 0x100], 0x40000000, 3, False, True, 0)
 
 
 def vhdl_type(bits):
@@ -269,7 +288,7 @@ def gen_axis_checking_process(prefix, signals):
     out += "    variable i : integer := 0;\n"
     num_values = len(signals[0][1])
     for name, values, bits in signals:
-        bitstring = ''.join(f"{np.uint32(v):0{bits}b}"[-bits:] for v in reversed(values))
+        bitstring = ''.join(f"{int(v) & ((1 << bits) - 1):0{bits}b}" for v in reversed(values))
         out += f'    constant EXPECTED_VALUES_{name} : std_logic_vector({num_values*bits}-1 downto 0) := "{bitstring}";\n'
     out += "begin\n"
     for name, values, bits in signals:
@@ -295,7 +314,7 @@ def gen_bram_checking_process(prefix, signals):
     out += "    variable i : integer := 0;\n"
     num_values = len(signals[0][1])
     for name, values, bits in signals:
-        bitstring = ''.join(f"{np.uint32(v):0{bits}b}"[-bits:] for v in reversed(values))
+        bitstring = ''.join(f"{int(v) & ((1 << bits) - 1):0{bits}b}" for v in reversed(values))
         out += f'    constant EXPECTED_VALUES_{name} : std_logic_vector({num_values*bits}-1 downto 0) := "{bitstring}";\n'
     out += "begin\n"
     for name, values, bits in signals:
@@ -332,6 +351,8 @@ entity conv_accelerator_tb is
 end conv_accelerator_tb;
 
 architecture Behavioral of conv_accelerator_tb is
+    constant CLK_PERIOD : time := 200 ps;
+    constant RESET_TIME : time := 5 ns;
 
     constant DIM_WIDTH : integer := 12; -- Max dim size is 2048 in a dense layer
     constant INPUT_ADDR_WIDTH : integer := 7; -- Max input size is 60*60*32 < 2^17
@@ -358,10 +379,10 @@ architecture Behavioral of conv_accelerator_tb is
     signal input_end_diff_ow : std_logic_vector(31 downto 0);
     signal output_elements_per_channel : std_logic_vector(31 downto 0);
     signal output_initial_offset : std_logic_vector(31 downto 0);
-    signal mac0_bias : std_logic_vector(31 downto 0);
-    signal mac1_bias : std_logic_vector(31 downto 0);
-    signal mac2_bias : std_logic_vector(31 downto 0);
-    signal mac3_bias : std_logic_vector(31 downto 0);
+    signal mac0_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac1_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac2_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac3_bias : std_logic_vector(31 downto 0) := (others => '0');
     signal q_scale : std_logic_vector(31 downto 0);
     signal q_zero : std_logic_vector(31 downto 0);
 
@@ -528,7 +549,7 @@ begin
     process(BRAM_INPUT_clk)
     begin
         if rising_edge(BRAM_INPUT_clk) then
-            if (BRAM_INPUT_rst = '1') then
+            if (BRAM_INPUT_rst = '0') then
                 BRAM_INPUT_dout_delay1 <= (others => '0');
             elsif (BRAM_INPUT_en = '1') then
                 BRAM_INPUT_dout_delay1 <= BRAM_INPUT_data((32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2))))));
@@ -540,7 +561,7 @@ begin
     process(BRAM_FILTER0_clk)
     begin
         if rising_edge(BRAM_FILTER0_clk) then
-            if (BRAM_FILTER0_rst = '1') then
+            if (BRAM_FILTER0_rst = '0') then
                 BRAM_FILTER0_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER0_en = '1') then
                 BRAM_FILTER0_dout_delay1 <= BRAM_FILTER0_data((32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2))))));
@@ -552,7 +573,7 @@ begin
     process(BRAM_FILTER1_clk)
     begin
         if rising_edge(BRAM_FILTER1_clk) then
-            if (BRAM_FILTER1_rst = '1') then
+            if (BRAM_FILTER1_rst = '0') then
                 BRAM_FILTER1_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER1_en = '1') then
                 BRAM_FILTER1_dout_delay1 <= BRAM_FILTER1_data((32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2))))));
@@ -564,7 +585,7 @@ begin
     process(BRAM_FILTER2_clk)
     begin
         if rising_edge(BRAM_FILTER2_clk) then
-            if (BRAM_FILTER2_rst = '1') then
+            if (BRAM_FILTER2_rst = '0') then
                 BRAM_FILTER2_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER2_en = '1') then
                 BRAM_FILTER2_dout_delay1 <= BRAM_FILTER2_data((32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2))))));
@@ -576,7 +597,7 @@ begin
     process(BRAM_FILTER3_clk)
     begin
         if rising_edge(BRAM_FILTER3_clk) then
-            if (BRAM_FILTER3_rst = '1') then
+            if (BRAM_FILTER3_rst = '0') then
                 BRAM_FILTER3_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER3_en = '1') then
                 BRAM_FILTER3_dout_delay1 <= BRAM_FILTER3_data((32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2))))));
@@ -588,7 +609,7 @@ begin
     process(BRAM_OUTPUT_clk)
     begin
         if rising_edge(BRAM_OUTPUT_clk) then
-            if (BRAM_OUTPUT_rst = '1' or conv_idle = '1') then
+            if (BRAM_OUTPUT_rst = '0' or conv_idle = '1') then
                 BRAM_OUTPUT_dout_delay1 <= (others => '0');
                 BRAM_OUTPUT_data <= (others => '0');
             elsif (BRAM_OUTPUT_en = '1') then
@@ -603,7 +624,7 @@ begin
     end process;
  
 
-    clk <= not clk after 1ps;
+    clk <= not clk after CLK_PERIOD/2;
 
     dut: entity work.conv_accelerator
         generic map(
@@ -748,10 +769,10 @@ begin
         );
 
     process begin
-        rst <= '1';
-        wait for 2ps;
-        conv_idle <= '1';
         rst <= '0';
+        wait for RESET_TIME;
+        conv_idle <= '1';
+        rst <= '1';
         {indent(control_process, 2)}
 
         assert FALSE Report "Simulation Complete!" severity FAILURE;

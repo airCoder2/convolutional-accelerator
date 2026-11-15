@@ -7,6 +7,9 @@
 #include <xil_cache.h>
 #include <xparameters.h>
 
+#ifndef MLP_H
+#define MLP_H
+
 using namespace ML;
 
 #define MLP_BRAM_BASEADDR (0x40000000)
@@ -111,6 +114,7 @@ static inline void memcheck(void* dest, const void* src, ui32 len) {
 }
 
 static inline void runMemoryTest() {
+    Xil_DCacheDisable();
     std::cout << "Starting DMA Transfer Test!\n";
     memcheck_write(MLP_INPUTS, (1 << 17), 14);
     memcheck_write(MLP_OUTPUTS, (1 << 17), 15);
@@ -123,8 +127,10 @@ static inline void runMemoryTest() {
     memcheck_write(MLP_FILTER2, (1 << 11), 12);
     memcheck_write(MLP_FILTER3, (1 << 11), 13);
 
-    std::cout << "Write to bank 1\n";
+    std::cout << "Swapping filter banks 1\n";
     Xil_Out32(MLP_CTRLB, MLP_CTRLB_SWAP_FILTERS); // Swap filter banks
+
+    std::cout << "Write to bank 1\n";
     memcheck_write(MLP_FILTER0, (1 << 11), 20);
     memcheck_write(MLP_FILTER1, (1 << 11), 21);
     memcheck_write(MLP_FILTER2, (1 << 11), 22);
@@ -148,4 +154,5 @@ static inline void runMemoryTest() {
     memcheck_verify(MLP_OUTPUTS, (1 << 17), 14);
 }
 
+#endif
 #endif

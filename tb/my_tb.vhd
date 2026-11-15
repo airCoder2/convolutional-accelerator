@@ -13,6 +13,8 @@ entity conv_accelerator_tb is
 end conv_accelerator_tb;
 
 architecture Behavioral of conv_accelerator_tb is
+    constant CLK_PERIOD : time := 200 ps;
+    constant RESET_TIME : time := 5 ns;
 
     constant DIM_WIDTH : integer := 12; -- Max dim size is 2048 in a dense layer
     constant INPUT_ADDR_WIDTH : integer := 7; -- Max input size is 60*60*32 < 2^17
@@ -39,10 +41,10 @@ architecture Behavioral of conv_accelerator_tb is
     signal input_end_diff_ow : std_logic_vector(31 downto 0);
     signal output_elements_per_channel : std_logic_vector(31 downto 0);
     signal output_initial_offset : std_logic_vector(31 downto 0);
-    signal mac0_bias : std_logic_vector(31 downto 0);
-    signal mac1_bias : std_logic_vector(31 downto 0);
-    signal mac2_bias : std_logic_vector(31 downto 0);
-    signal mac3_bias : std_logic_vector(31 downto 0);
+    signal mac0_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac1_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac2_bias : std_logic_vector(31 downto 0) := (others => '0');
+    signal mac3_bias : std_logic_vector(31 downto 0) := (others => '0');
     signal q_scale : std_logic_vector(31 downto 0);
     signal q_zero : std_logic_vector(31 downto 0);
 
@@ -209,7 +211,7 @@ begin
     process(BRAM_INPUT_clk)
     begin
         if rising_edge(BRAM_INPUT_clk) then
-            if (BRAM_INPUT_rst = '1') then
+            if (BRAM_INPUT_rst = '0') then
                 BRAM_INPUT_dout_delay1 <= (others => '0');
             elsif (BRAM_INPUT_en = '1') then
                 BRAM_INPUT_dout_delay1 <= BRAM_INPUT_data((32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2))))));
@@ -221,7 +223,7 @@ begin
     process(BRAM_FILTER0_clk)
     begin
         if rising_edge(BRAM_FILTER0_clk) then
-            if (BRAM_FILTER0_rst = '1') then
+            if (BRAM_FILTER0_rst = '0') then
                 BRAM_FILTER0_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER0_en = '1') then
                 BRAM_FILTER0_dout_delay1 <= BRAM_FILTER0_data((32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2))))));
@@ -233,7 +235,7 @@ begin
     process(BRAM_FILTER1_clk)
     begin
         if rising_edge(BRAM_FILTER1_clk) then
-            if (BRAM_FILTER1_rst = '1') then
+            if (BRAM_FILTER1_rst = '0') then
                 BRAM_FILTER1_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER1_en = '1') then
                 BRAM_FILTER1_dout_delay1 <= BRAM_FILTER1_data((32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2))))));
@@ -245,7 +247,7 @@ begin
     process(BRAM_FILTER2_clk)
     begin
         if rising_edge(BRAM_FILTER2_clk) then
-            if (BRAM_FILTER2_rst = '1') then
+            if (BRAM_FILTER2_rst = '0') then
                 BRAM_FILTER2_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER2_en = '1') then
                 BRAM_FILTER2_dout_delay1 <= BRAM_FILTER2_data((32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2))))));
@@ -257,7 +259,7 @@ begin
     process(BRAM_FILTER3_clk)
     begin
         if rising_edge(BRAM_FILTER3_clk) then
-            if (BRAM_FILTER3_rst = '1') then
+            if (BRAM_FILTER3_rst = '0') then
                 BRAM_FILTER3_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER3_en = '1') then
                 BRAM_FILTER3_dout_delay1 <= BRAM_FILTER3_data((32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2))))));
@@ -269,7 +271,7 @@ begin
     process(BRAM_OUTPUT_clk)
     begin
         if rising_edge(BRAM_OUTPUT_clk) then
-            if (BRAM_OUTPUT_rst = '1' or conv_idle = '1') then
+            if (BRAM_OUTPUT_rst = '0' or conv_idle = '1') then
                 BRAM_OUTPUT_dout_delay1 <= (others => '0');
                 BRAM_OUTPUT_data <= (others => '0');
             elsif (BRAM_OUTPUT_en = '1') then
@@ -284,7 +286,7 @@ begin
     end process;
  
 
-    clk <= not clk after 1ps;
+    clk <= not clk after CLK_PERIOD/2;
 
     dut: entity work.conv_accelerator
         generic map(
@@ -429,12 +431,12 @@ begin
         );
 
     process begin
-        rst <= '1';
-        wait for 2ps;
-        conv_idle <= '1';
         rst <= '0';
+        wait for RESET_TIME;
         conv_idle <= '1';
-        wait for 10ps;
+        rst <= '1';
+        conv_idle <= '1';
+        wait for 5*CLK_PERIOD;
         BRAM_INPUT_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A50102031500131211100F0E0D0C0B0A09080706050480FF7F";
         BRAM_FILTER0_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A50C0B0A09080706050480FF7F";
         BRAM_FILTER1_data <= x"A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5A5E8E9EAEBECEDEEEFF0F1F2F3";
@@ -459,10 +461,10 @@ begin
         mac3_bias <= x"00000003";
         q_scale <= x"04000000";
         q_zero <= x"00000000";
-        wait for 10ps;
+        wait for 5*CLK_PERIOD;
         conv_idle <= '0';
         wait until rising_edge(conv_complete);
-        wait for 10ps;
+        wait for 5*CLK_PERIOD;
         
 
         assert FALSE Report "Simulation Complete!" severity FAILURE;
@@ -709,27 +711,27 @@ begin
             assert FALSE report "TOO MANY TRANSACTIONS!!!";
         end if;
     end process;
---    
---
---    process
---        variable i : integer := 0;
---        constant EXPECTED_VALUES_BRAM_OUTPUT_addr : std_logic_vector(512-1 downto 0) := "00000000000000000000000000001100000000000000000000000000000010000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000011000000000000000000000000000000100000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000110000000000000000000000000000001000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000010000000000000000000000000000000010000000000000000000000000000000000";
---        constant EXPECTED_VALUES_BRAM_OUTPUT_din : std_logic_vector(512-1 downto 0) := "00111111010101011111110101001011001011010011110100000001001101101110010111011010111110101101111100000011000010010000010101111111000000000101010111111101010010110000000000111101000000010011011000000000110110101111101011011111000000000000100100000101011111110000000000000000111111010100101100000000000000000000000100110110000000000000000011111010110111110000000000000000000001010111111100000000000000000000000001001011000000000000000000000000001101100000000000000000000000001101111100000000000000000000000001111111";
---    begin
---        EXPECTED_BRAM_OUTPUT_addr <= EXPECTED_VALUES_BRAM_OUTPUT_addr((i+1)*32-1 downto i*32);
---        EXPECTED_BRAM_OUTPUT_din <= EXPECTED_VALUES_BRAM_OUTPUT_din((i+1)*32-1 downto i*32);
---        wait until rising_edge(clk) and BRAM_OUTPUT_en = '1' and BRAM_OUTPUT_we = "1111";
---        assert BRAM_OUTPUT_addr = EXPECTED_BRAM_OUTPUT_addr report "ASSERTION FAILURE";
---        if not (BRAM_OUTPUT_addr = EXPECTED_BRAM_OUTPUT_addr) then BRAM_OUTPUT_fail <= 'X'; end if;
---        assert BRAM_OUTPUT_din = EXPECTED_BRAM_OUTPUT_din report "ASSERTION FAILURE";
---        if not (BRAM_OUTPUT_din = EXPECTED_BRAM_OUTPUT_din) then BRAM_OUTPUT_fail <= 'X'; end if;
---        i := i + 1;
---        if (i = 16) then
---            wait until rising_edge(clk) and BRAM_OUTPUT_en = '1' and BRAM_OUTPUT_we = "1111";
---            BRAM_OUTPUT_fail <= 'X';
---            assert FALSE report "TOO MANY TRANSACTIONS!!!";
---        end if;
---    end process;
+    
+
+    process
+        variable i : integer := 0;
+        constant EXPECTED_VALUES_BRAM_OUTPUT_addr : std_logic_vector(512-1 downto 0) := "00000000000000000000000000001100000000000000000000000000000010000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000011000000000000000000000000000000100000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000110000000000000000000000000000001000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000010000000000000000000000000000000010000000000000000000000000000000000";
+        constant EXPECTED_VALUES_BRAM_OUTPUT_din : std_logic_vector(512-1 downto 0) := "00111111010101011111110101001011001011010011110100000001001101101110010111011010111110101101111100000011000010010000010101111111000000000101010111111101010010110000000000111101000000010011011000000000110110101111101011011111000000000000100100000101011111110000000000000000111111010100101100000000000000000000000100110110000000000000000011111010110111110000000000000000000001010111111100000000000000000000000001001011000000000000000000000000001101100000000000000000000000001101111100000000000000000000000001111111";
+    begin
+        EXPECTED_BRAM_OUTPUT_addr <= EXPECTED_VALUES_BRAM_OUTPUT_addr((i+1)*32-1 downto i*32);
+        EXPECTED_BRAM_OUTPUT_din <= EXPECTED_VALUES_BRAM_OUTPUT_din((i+1)*32-1 downto i*32);
+        wait until rising_edge(clk) and BRAM_OUTPUT_en = '1' and BRAM_OUTPUT_we = "1111";
+        assert BRAM_OUTPUT_addr = EXPECTED_BRAM_OUTPUT_addr report "ASSERTION FAILURE";
+        if not (BRAM_OUTPUT_addr = EXPECTED_BRAM_OUTPUT_addr) then BRAM_OUTPUT_fail <= 'X'; end if;
+        assert BRAM_OUTPUT_din = EXPECTED_BRAM_OUTPUT_din report "ASSERTION FAILURE";
+        if not (BRAM_OUTPUT_din = EXPECTED_BRAM_OUTPUT_din) then BRAM_OUTPUT_fail <= 'X'; end if;
+        i := i + 1;
+        if (i = 16) then
+            wait until rising_edge(clk) and BRAM_OUTPUT_en = '1' and BRAM_OUTPUT_we = "1111";
+            BRAM_OUTPUT_fail <= 'X';
+            assert FALSE report "TOO MANY TRANSACTIONS!!!";
+        end if;
+    end process;
     
 
 end Behavioral;

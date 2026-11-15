@@ -77,6 +77,7 @@ end conv_config;
 architecture Behavioral of conv_config is
 
     -- The least significant bit in the address we care about as we are using 32-bit registers
+    -- ME: this should come out as 2
     constant ADDRLSB : integer := integer(ceil(log2(real(C_AXI_DATA_WIDTH/8))));
 
     signal axil_write_ready : std_logic;
@@ -154,6 +155,7 @@ begin
     S_AXI_LITE_RVALID <= axil_read_valid;
     S_AXI_LITE_RDATA <= axil_read_data;
     S_AXI_LITE_RRESP <= "00";
+    -- ME: THis should come out as 7 donwnto 2
     axil_read_reg_index <= S_AXI_LITE_ARADDR(C_AXI_ADDR_WIDTH-1 downto ADDRLSB);
 
     -- Register Write
@@ -187,7 +189,13 @@ begin
             elsif (axil_write_ready = '1') then
                 case axil_write_reg_index is
 
+                    -- ME: Ahh okay, so the way this works is we have to write to this register before
+                    -- writing to a single data line. depending on what we have on our data line, we get
+                    -- different values to our accelerator
+
                     -- EDIT REGISTER WRITE BEHAVIOR HERE
+                    -- so when register is 0, which is by default, set to conv idle to  WDATA(0).
+                    -- well it seems like I have to keep WDATA(0) not asserted the whole time
                     when "000000" =>
                         s_conv_idle <= S_AXI_LITE_WDATA(0);
                     when "000001" =>

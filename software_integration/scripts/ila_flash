@@ -1,0 +1,56 @@
+#!/remote/Xilinx/2020.1/Vitis/2020.1/bin/xsct
+
+# Same as flash_only_vitis, but:
+#   - programs the ILA bitstream instead of the workspace bitstream
+#   - pauses after PS init / ELF download so you can arm the ILA in Vivado
+#     before the application starts running
+
+source scripts/common_args.tcl
+
+set ila_bit "/home/umhaihl/machine_learning/lab5/cpre487-587-lab3/complex_interface/vivado/complex_interface/ila_mac.bit"
+
+puts "Connecting to hardware server"
+if { [catch {connect -url tcp:localhost:3121}] } {
+  puts "No hardware server running, starting a local hardware server instead"
+  connect
+}
+
+# Reset the board (this also clears the PL)
+targets -set -filter {name =~ "APU*"}
+rst -system
+after 1000
+
+# Program the FPGA with the ILA bitstream
+puts "Flashing fpga with $ila_bit"
+targets -set -filter {name =~ "xc7z020"}
+fpga $ila_bit
+
+# Init the PS system (starts FCLK, which clocks the ILA / debug hub)
+targets -set -filter {name =~ "APU*"}
+loadhw -hw $params(workspace_dir)/hw/$params(platform_name).xsa -regs
+configparams force-mem-access 1
+source $params(workspace_dir)/$params(project_name)/_ide/psinit/ps7_init.tcl
+ps7_init
+ps7_post_config
+
+# Download the ELF to core 0 (does not start it yet)
+targets -set -filter {name =~ "*A9*#0"}
+dow $params(workspace_dir)/$params(project_name)/Debug/$params(project_name).elf
+configparams force-mem-access 0
+
+puts ""
+puts "=============================================================="
+puts " FPGA programmed and PS initialized. Now in Vivado:"
+puts "   1. Hardware Manager -> Refresh Device (do NOT Program)"
+puts "   2. Make sure probes file = debug_nets.ltx"
+puts "   3. Set trigger (e.g. MO_AXIS_TVALID == 1) and Run Trigger"
+puts " Then press Enter here to start the application."
+puts "=============================================================="
+flush stdout
+gets stdin
+
+puts "Starting application. Reading from UART, press Ctrl-C to stop"
+readjtaguart -start -handle stdout
+con
+close stderr
+vwait forever
