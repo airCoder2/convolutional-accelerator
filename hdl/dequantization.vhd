@@ -47,7 +47,29 @@ architecture Behavioral of dequantization is
     
     signal s_quantized_value : signed(C_OUT_WIDTH-1 downto 0);
 
+    signal dequant_debug_S_AXIS_TREADY : std_logic;
+    signal dequant_debug_S_AXIS_TDATA  : std_logic_vector(C_DATA_WIDTH-1 downto 0);
+    signal dequant_debug_S_AXIS_TLAST  : std_logic;
+    signal dequant_debug_S_AXIS_TID    : std_logic_vector(C_TID_WIDTH-1 downto 0);
+    signal dequant_debug_S_AXIS_TVALID : std_logic;
+
+
+    attribute mark_debug : string;
+    attribute mark_debug of dequant_debug_S_AXIS_TREADY : signal is "true"; 
+    attribute mark_debug of dequant_debug_S_AXIS_TDATA  : signal is "true"; 
+    attribute mark_debug of dequant_debug_S_AXIS_TLAST  : signal is "true"; 
+    attribute mark_debug of dequant_debug_S_AXIS_TID    : signal is "true"; 
+    attribute mark_debug of dequant_debug_S_AXIS_TVALID : signal is "true"; 
+
+
 begin
+    -- debug signals
+    dequant_debug_S_AXIS_TREADY <= S_AXIS_TREADY;
+    dequant_debug_S_AXIS_TDATA  <= S_AXIS_TDATA;
+    dequant_debug_S_AXIS_TLAST  <= S_AXIS_TLAST;
+    dequant_debug_S_AXIS_TID    <= S_AXIS_TID;   
+    dequant_debug_S_AXIS_TVALID <= S_AXIS_TVALID;
+
     -- EXP: so basically we need to export the correct M from python that allows us to do
     --      fixed point math rather than a floating point one. Testbench generator also implements it this way
 

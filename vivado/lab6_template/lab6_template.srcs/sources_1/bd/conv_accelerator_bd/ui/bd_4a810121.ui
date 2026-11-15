@@ -1,8 +1,8 @@
 {
    "ActiveEmotionalView":"Default View",
    "Default View_ScaleFactor":"1.22978",
-   "Default View_TopLeft":"812,7",
-   "ExpandedHierarchyInLayout":"/bram|/bram/bram_filter_0|/bram/bram_filter_1|/bram/bram_filter_2|/bram/bram_filter_3|/bram/bram_input_0",
+   "Default View_TopLeft":"768,50",
+   "ExpandedHierarchyInLayout":"",
    "comment_0":"So basically from what I understand this is how this thing works:
 
 The processor, has access to DDR, it is a masater to (CONV accelerator and DMA)
@@ -22,153 +22,48 @@ the crossbar and then writes it into the BRAM.",
    "font_comment_2":"24",
    "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:9.0 TLS
 #  -string -flagsOSRD
-preplace port DDR -pg 1 -lvl 8 -x 5870 -y 380 -defaultsOSRD
-preplace port FIXED_IO -pg 1 -lvl 8 -x 5870 -y 400 -defaultsOSRD
-preplace inst axi_cdma_0 -pg 1 -lvl 4 -x 1230 -y 650 -defaultsOSRD
+preplace port DDR -pg 1 -lvl 8 -x 2870 -y 380 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -lvl 8 -x 2870 -y 400 -defaultsOSRD
+preplace inst axi_cdma_0 -pg 1 -lvl 4 -x 1200 -y 650 -defaultsOSRD
 preplace inst axi_crossbar_0 -pg 1 -lvl 3 -x 790 -y 350 -defaultsOSRD
-preplace inst axi_crossbar_1 -pg 1 -lvl 5 -x 1730 -y 400 -defaultsOSRD
+preplace inst axi_crossbar_1 -pg 1 -lvl 5 -x 1700 -y 400 -defaultsOSRD
 preplace inst axi_protocol_convert_0 -pg 1 -lvl 2 -x 490 -y 330 -defaultsOSRD
-preplace inst axi_protocol_convert_3 -pg 1 -lvl 6 -x 2260 -y 1244 -defaultsOSRD
-preplace inst bram -pg 1 -lvl 6 -x 2260 -y 184 -defaultsOSRD
-preplace inst processing_system7_0 -pg 1 -lvl 7 -x 5620 -y 420 -defaultsOSRD
+preplace inst axi_protocol_convert_3 -pg 1 -lvl 6 -x 2230 -y 420 -defaultsOSRD
+preplace inst bram -pg 1 -lvl 6 -x 2230 -y 182 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 7 -x 2612 -y 420 -defaultsOSRD
 preplace inst rst_ps7_0_200M -pg 1 -lvl 1 -x 150 -y 430 -defaultsOSRD
-preplace inst conv_accelerator_wra_1 -pg 1 -lvl 4 -x 1230 -y 270 -defaultsOSRD
-preplace inst bram|axi_bram_ctrl -pg 1 -lvl 1 -x 2350 -y 704 -defaultsOSRD
-preplace inst bram|bram_connect_0 -pg 1 -lvl 4 -x 3230 -y 254 -defaultsOSRD
-preplace inst bram|bram_connect_1 -pg 1 -lvl 4 -x 3230 -y 534 -defaultsOSRD
-preplace inst bram|bram_connect_2 -pg 1 -lvl 3 -x 2920 -y 694 -defaultsOSRD
-preplace inst bram|bram_connect_3 -pg 1 -lvl 3 -x 2920 -y 524 -defaultsOSRD
-preplace inst bram|bram_connect_4 -pg 1 -lvl 2 -x 2640 -y 704 -defaultsOSRD
-preplace inst bram|bram_filter_0 -pg 1 -lvl 6 -x 4800 -y 126 -defaultsOSRD
-preplace inst bram|bram_filter_1 -pg 1 -lvl 6 -x 4800 -y 400 -defaultsOSRD
-preplace inst bram|bram_filter_2 -pg 1 -lvl 6 -x 4800 -y 670 -defaultsOSRD
-preplace inst bram|bram_filter_3 -pg 1 -lvl 6 -x 4800 -y 948 -defaultsOSRD
-preplace inst bram|bram_input_0 -pg 1 -lvl 5 -x 3650 -y 776 -defaultsOSRD
-preplace inst bram|bram_read_delay_0 -pg 1 -lvl 5 -x 3650 -y 124 -defaultsOSRD
-preplace inst bram|bram_read_delay_1 -pg 1 -lvl 5 -x 3650 -y 264 -defaultsOSRD
-preplace inst bram|bram_read_delay_2 -pg 1 -lvl 5 -x 3650 -y 394 -defaultsOSRD
-preplace inst bram|bram_read_delay_3 -pg 1 -lvl 5 -x 3650 -y 544 -defaultsOSRD
-preplace inst bram|bram_read_delay_4 -pg 1 -lvl 4 -x 3230 -y 784 -defaultsOSRD
-preplace inst bram|bram_read_delay_5 -pg 1 -lvl 4 -x 3230 -y 684 -defaultsOSRD
-preplace inst bram|bram_filter_0|blk_mem_gen_0 -pg 1 -lvl 2 -x 5210 -y 146 -defaultsOSRD
-preplace inst bram|bram_filter_0|blk_mem_gen_1 -pg 1 -lvl 2 -x 5210 -y 246 -defaultsOSRD
-preplace inst bram|bram_filter_0|bram_switch_1 -pg 1 -lvl 1 -x 4930 -y 156 -defaultsOSRD
-preplace inst bram|bram_filter_1|blk_mem_gen_0 -pg 1 -lvl 2 -x 5210 -y 420 -defaultsOSRD
-preplace inst bram|bram_filter_1|blk_mem_gen_1 -pg 1 -lvl 2 -x 5210 -y 520 -defaultsOSRD
-preplace inst bram|bram_filter_1|bram_switch_1 -pg 1 -lvl 1 -x 4930 -y 430 -defaultsOSRD
-preplace inst bram|bram_filter_2|blk_mem_gen_0 -pg 1 -lvl 2 -x 5210 -y 690 -defaultsOSRD
-preplace inst bram|bram_filter_2|blk_mem_gen_1 -pg 1 -lvl 2 -x 5210 -y 790 -defaultsOSRD
-preplace inst bram|bram_filter_2|bram_switch_1 -pg 1 -lvl 1 -x 4930 -y 700 -defaultsOSRD
-preplace inst bram|bram_filter_3|blk_mem_gen_0 -pg 1 -lvl 2 -x 5210 -y 968 -defaultsOSRD
-preplace inst bram|bram_filter_3|blk_mem_gen_1 -pg 1 -lvl 2 -x 5210 -y 1068 -defaultsOSRD
-preplace inst bram|bram_filter_3|bram_switch_1 -pg 1 -lvl 1 -x 4930 -y 978 -defaultsOSRD
-preplace inst bram|bram_input_0|blk_mem_gen_0 -pg 1 -lvl 3 -x 4400 -y 756 -defaultsOSRD
-preplace inst bram|bram_input_0|blk_mem_gen_1 -pg 1 -lvl 3 -x 4400 -y 856 -defaultsOSRD
-preplace inst bram|bram_input_0|bram_mux_0 -pg 1 -lvl 1 -x 3790 -y 786 -defaultsOSRD
-preplace inst bram|bram_input_0|bram_mux_1 -pg 1 -lvl 1 -x 3790 -y 946 -defaultsOSRD
-preplace inst bram|bram_input_0|bram_switch_1 -pg 1 -lvl 2 -x 4120 -y 846 -defaultsOSRD
-preplace netloc processing_system7_0_FCLK_CLK0 1 0 8 -30 330 330 250 640 270 950 560 1550 560 1870 1324 5400 520 5850
-preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 8 -30 1334 NJ 1334 NJ 1334 NJ 1334 NJ 1334 NJ 1334 NJ 1334 5840
-preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 5 330 410 640 430 930 550 1560 550 1880
-preplace netloc invert_filters_1 1 4 2 1560 320 1910J
-preplace netloc sel_1 1 4 2 N 310 1920J
-preplace netloc invert_activations_1 1 4 2 1550 300 1930J
-preplace netloc axi_crossbar_1_M01_AXI 1 5 1 1900 410n
-preplace netloc BRAM_PORT_INPUT_0_1 1 4 2 1510 250 1970J
+preplace inst conv_accelerator_wra_1 -pg 1 -lvl 4 -x 1200 -y 270 -defaultsOSRD
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 8 -30 330 330 250 640 270 940 410 1500 490 1860 500 2380 520 2850
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 8 -30 530 NJ 530 NJ 530 NJ 530 NJ 530 NJ 530 NJ 530 2840
+preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 5 340 410 640 430 950 420 1440 480 1870
+preplace netloc invert_filters_1 1 4 2 1520 272 NJ
+preplace netloc sel_1 1 4 2 1510 292 NJ
+preplace netloc invert_activations_1 1 4 2 1500 252 NJ
+preplace netloc axi_crossbar_1_M01_AXI 1 5 1 1840 192n
+preplace netloc BRAM_PORT_INPUT_0_1 1 4 2 1460 152 NJ
 preplace netloc axi_protocol_convert_0_M_AXI 1 2 1 N 330
 preplace netloc processing_system7_0_FIXED_IO 1 7 1 NJ 400
-preplace netloc axi_crossbar_0_M00_AXI 1 3 1 930 60n
-preplace netloc axi_crossbar_1_M00_AXI 1 5 1 1890 390n
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER1 1 4 2 1560 280 1960J
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER3 1 4 2 N 270 1950J
-preplace netloc axi_protocol_convert_3_M_AXI 1 6 1 5390 410n
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER2 1 4 2 1500 260 1980J
-preplace netloc BRAM_PORT_OUTPUT_0_1 1 4 2 N 290 1940J
-preplace netloc axi_crossbar_0_M01_AXI 1 3 1 940 360n
-preplace netloc axi_cdma_0_M_AXI 1 4 1 1540 380n
-preplace netloc processing_system7_0_M_AXI_GP0 1 1 7 340 540 NJ 540 NJ 540 1530J 14 NJ 14 NJ 14 5850
-preplace netloc conv_accelerator_wra_1_BRAM_FILTER0 1 4 2 1520 184 NJ
+preplace netloc axi_crossbar_0_M00_AXI 1 3 1 930 250n
+preplace netloc axi_crossbar_1_M00_AXI 1 5 1 1850 390n
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER1 1 4 2 1450 92 NJ
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER3 1 4 2 1480 132 NJ
+preplace netloc axi_protocol_convert_3_M_AXI 1 6 1 2380 410n
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER2 1 4 2 1470 112 NJ
+preplace netloc BRAM_PORT_OUTPUT_0_1 1 4 2 1490 172 NJ
+preplace netloc axi_crossbar_0_M01_AXI 1 3 1 930 360n
+preplace netloc axi_cdma_0_M_AXI 1 4 1 1460 380n
+preplace netloc processing_system7_0_M_AXI_GP0 1 1 7 340 12 NJ 12 NJ 12 NJ 12 NJ 12 NJ 12 2850
+preplace netloc conv_accelerator_wra_1_BRAM_FILTER0 1 4 2 1440 72 NJ
 preplace netloc processing_system7_0_DDR 1 7 1 NJ 380
-preplace netloc bram|aclk_0_1 1 0 1 2200 704n
-preplace netloc bram|aresetn_0_1 1 0 1 2210 724n
-preplace netloc bram|invert_banks_1 1 0 6 NJ 944 NJ 944 NJ 944 NJ 944 3380J 1046 4590
-preplace netloc bram|invert_banks_2 1 0 5 NJ 924 NJ 924 NJ 924 NJ 924 3390
-preplace netloc bram|sel_1 1 0 5 NJ 964 NJ 964 NJ 964 NJ 964 3370
-preplace netloc bram|BRAM_PORT_OUTPUT_0_1 1 0 5 NJ 624 NJ 624 NJ 624 NJ 624 3430
-preplace netloc bram|BRAM_PORT_FILTER_1_1 1 0 6 NJ 324 NJ 324 NJ 324 NJ 324 NJ 324 4600
-preplace netloc bram|axi_register_slice_2_M_AXI 1 0 1 2190 684n
-preplace netloc bram|BRAM_PORT_FILTER_3_1 1 0 6 NJ 604 NJ 604 NJ 604 NJ 604 NJ 604 4550
-preplace netloc bram|bram_read_delay_0_S_BRAM 1 5 1 4600J 124n
-preplace netloc bram|bram_connect_1_M_BRAM0 1 4 1 3420 394n
-preplace netloc bram|bram_connect_1_M_BRAM1 1 4 1 NJ 544
-preplace netloc bram|BRAM_PORT_FILTER_2_1 1 0 6 2190J 334 NJ 334 NJ 334 NJ 334 NJ 334 4580
-preplace netloc bram|bram_read_delay_5_S_BRAM 1 4 1 3420 684n
-preplace netloc bram|BRAM_PORT_FILTER_0_1 1 0 6 NJ 184 NJ 184 NJ 184 NJ 184 3420J 64 4610
-preplace netloc bram|BRAM_PORT_INPUT_0_1 1 0 5 NJ 844 NJ 844 NJ 844 NJ 844 3410
-preplace netloc bram|bram_connect_3_M_BRAM1 1 3 1 N 534
-preplace netloc bram|axi_bram_ctrl_BRAM_PORTA 1 1 1 N 704
-preplace netloc bram|bram_connect_2_M_BRAM1 1 3 1 3060J 704n
-preplace netloc bram|bram_connect_2_M_BRAM0 1 3 1 NJ 684
-preplace netloc bram|bram_connect_4_M_BRAM0 1 2 1 N 694
-preplace netloc bram|bram_read_delay_1_S_BRAM 1 5 1 4610 264n
-preplace netloc bram|bram_read_delay_3_S_BRAM 1 5 1 4560 544n
-preplace netloc bram|bram_connect_0_M_BRAM0 1 4 1 3430 124n
-preplace netloc bram|bram_read_delay_4_S_BRAM 1 4 1 3400 784n
-preplace netloc bram|bram_connect_3_M_BRAM0 1 3 1 3060 254n
-preplace netloc bram|bram_read_delay_2_S_BRAM 1 5 1 4570J 394n
-preplace netloc bram|bram_connect_4_M_BRAM1 1 2 1 2780 524n
-preplace netloc bram|bram_connect_0_M_BRAM1 1 4 1 NJ 264
-preplace netloc bram|bram_filter_0|invert_banks_0_2 1 0 1 N 176
-preplace netloc bram|bram_filter_0|BRAM_PORT_1 1 0 1 4760 116n
-preplace netloc bram|bram_filter_0|bram_switch_0_BLK_MEM_PORTA1 1 1 1 5100J 166n
-preplace netloc bram|bram_filter_0|bram_switch_0_BLK_MEM_PORTA0 1 1 1 NJ 146
-preplace netloc bram|bram_filter_0|Conn1 1 0 1 N 136
-preplace netloc bram|bram_filter_1|invert_banks_0_2 1 0 1 N 450
-preplace netloc bram|bram_filter_1|Conn1 1 0 1 N 410
-preplace netloc bram|bram_filter_1|bram_switch_0_BLK_MEM_PORTA1 1 1 1 5100J 440n
-preplace netloc bram|bram_filter_1|BRAM_PORT_1 1 0 1 4760 390n
-preplace netloc bram|bram_filter_1|bram_switch_0_BLK_MEM_PORTA0 1 1 1 NJ 420
-preplace netloc bram|bram_filter_2|invert_banks_0_2 1 0 1 N 720
-preplace netloc bram|bram_filter_2|Conn1 1 0 1 N 680
-preplace netloc bram|bram_filter_2|BRAM_PORT_1 1 0 1 4760 660n
-preplace netloc bram|bram_filter_2|bram_switch_0_BLK_MEM_PORTA0 1 1 1 NJ 690
-preplace netloc bram|bram_filter_2|bram_switch_0_BLK_MEM_PORTA1 1 1 1 5100J 710n
-preplace netloc bram|bram_filter_3|invert_banks_0_2 1 0 1 N 998
-preplace netloc bram|bram_filter_3|BRAM_PORT_1 1 0 1 4760 938n
-preplace netloc bram|bram_filter_3|Conn1 1 0 1 N 958
-preplace netloc bram|bram_filter_3|bram_switch_0_BLK_MEM_PORTA0 1 1 1 NJ 968
-preplace netloc bram|bram_filter_3|bram_switch_0_BLK_MEM_PORTA1 1 1 1 5100J 988n
-preplace netloc bram|bram_input_0|Net 1 0 1 3630 806n
-preplace netloc bram|bram_input_0|invert_banks_0_2 1 0 2 3610J 866 N
-preplace netloc bram|bram_input_0|Conn2 1 0 1 3600 766n
-preplace netloc bram|bram_input_0|bram_switch_1_BLK_MEM_PORT0 1 2 1 4290J 756n
-preplace netloc bram|bram_input_0|BRAM_OUTPUTS_1 1 0 1 3620 886n
-preplace netloc bram|bram_input_0|bram_mux_0_BRAM_PORT 1 1 1 3950 786n
-preplace netloc bram|bram_input_0|bram_switch_1_BLK_MEM_PORT1 1 2 1 NJ 856
-preplace netloc bram|bram_input_0|BRAM_INPUTS_1 1 0 1 N 786
-preplace netloc bram|bram_input_0|Conn3 1 0 1 N 926
-preplace netloc bram|bram_input_0|bram_mux_1_BRAM_PORT 1 1 1 3950 846n
 preplace cgraphic comment_2 place bot 1693 230 textcolor 4 linecolor 3 linewidth 2
 preplace cgraphic comment_1 place bot 1688 29 textcolor 4 linecolor 3 linewidth 2
 preplace cgraphic comment_0 place top 568 -306 textcolor 4 linecolor 3 linewidth 2
-levelinfo -pg 1 -50 150 490 790 1230 1730 2260 5620 5870
-levelinfo -hier bram * 2350 2640 2920 3230 3650 4800 *
-levelinfo -hier bram|bram_filter_0 * 4930 5210 *
-levelinfo -hier bram|bram_filter_1 * 4930 5210 *
-levelinfo -hier bram|bram_filter_2 * 4930 5210 *
-levelinfo -hier bram|bram_filter_3 * 4930 5210 *
-levelinfo -hier bram|bram_input_0 * 3790 4120 4400 *
-pagesize -pg 1 -db -bbox -sgen -50 0 5990 1430
-pagesize -hier bram -db -bbox -sgen 2160 44 5360 1154
-pagesize -hier bram|bram_filter_0 -db -bbox -sgen 4730 76 5330 306
-pagesize -hier bram|bram_filter_1 -db -bbox -sgen 4730 350 5330 580
-pagesize -hier bram|bram_filter_2 -db -bbox -sgen 4730 620 5330 850
-pagesize -hier bram|bram_filter_3 -db -bbox -sgen 4730 898 5330 1128
-pagesize -hier bram|bram_input_0 -db -bbox -sgen 3570 696 4520 1026
+levelinfo -pg 1 -50 150 490 790 1200 1700 2230 2612 2870
+pagesize -pg 1 -db -bbox -sgen -50 0 2990 1430
 "
 }
 {
-   """""""""""""""""""""""""""""""""""""""""""""""""""""""""da_clkrst_cnt""""""""""""""""""""""""""""""""""""""""""""""""""""""""":"1"
+   """"""""""""""""""""""""""""""""""""""""""""""""""""""""""da_clkrst_cnt"""""""""""""""""""""""""""""""""""""""""""""""""""""""""":"1"
 }
 {
    "/comment_0":"comment_0",

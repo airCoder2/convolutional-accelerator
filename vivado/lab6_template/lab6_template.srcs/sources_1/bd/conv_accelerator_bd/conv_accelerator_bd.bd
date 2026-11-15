@@ -6,7 +6,8 @@
       "name": "conv_accelerator_bd",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
       "synth_flow_mode": "None",
-      "tool_version": "2020.1"
+      "tool_version": "2020.1",
+      "validated": "true"
     },
     "design_tree": {
       "axi_cdma_0": "",
@@ -62,11 +63,67 @@
     "interface_ports": {
       "DDR": {
         "mode": "Master",
-        "vlnv": "xilinx.com:interface:ddrx_rtl:1.0"
+        "vlnv": "xilinx.com:interface:ddrx_rtl:1.0",
+        "parameters": {
+          "CAN_DEBUG": {
+            "value": "false",
+            "value_src": "default"
+          },
+          "TIMEPERIOD_PS": {
+            "value": "1250",
+            "value_src": "default"
+          },
+          "MEMORY_TYPE": {
+            "value": "COMPONENTS",
+            "value_src": "default"
+          },
+          "DATA_WIDTH": {
+            "value": "8",
+            "value_src": "default"
+          },
+          "CS_ENABLED": {
+            "value": "true",
+            "value_src": "default"
+          },
+          "DATA_MASK_ENABLED": {
+            "value": "true",
+            "value_src": "default"
+          },
+          "SLOT": {
+            "value": "Single",
+            "value_src": "default"
+          },
+          "MEM_ADDR_MAP": {
+            "value": "ROW_COLUMN_BANK",
+            "value_src": "default"
+          },
+          "BURST_LENGTH": {
+            "value": "8",
+            "value_src": "default"
+          },
+          "AXI_ARBITRATION_SCHEME": {
+            "value": "TDM",
+            "value_src": "default"
+          },
+          "CAS_LATENCY": {
+            "value": "11",
+            "value_src": "default"
+          },
+          "CAS_WRITE_LATENCY": {
+            "value": "11",
+            "value_src": "default"
+          }
+        }
       },
       "FIXED_IO": {
         "mode": "Master",
-        "vlnv": "xilinx.com:display_processing_system7:fixedio_rtl:1.0"
+        "vlnv": "xilinx.com:display_processing_system7:fixedio_rtl:1.0",
+        "parameters": {
+          "CAN_DEBUG": {
+            "value": "false",
+            "value_src": "default"
+          }
+        }
       }
     },
     "components": {
@@ -1306,16 +1363,10 @@
               }
             },
             "interface_nets": {
-              "BRAM_PORT_1": {
+              "Conn1": {
                 "interface_ports": [
-                  "BRAM_PORT",
-                  "bram_switch_1/BRAM_PORT1"
-                ]
-              },
-              "bram_switch_0_BLK_MEM_PORTA1": {
-                "interface_ports": [
-                  "blk_mem_gen_1/BRAM_PORTA",
-                  "bram_switch_1/BLK_MEM_PORT1"
+                  "BRAM_PORT0",
+                  "bram_switch_1/BRAM_PORT0"
                 ]
               },
               "bram_switch_0_BLK_MEM_PORTA0": {
@@ -1324,10 +1375,16 @@
                   "bram_switch_1/BLK_MEM_PORT0"
                 ]
               },
-              "Conn1": {
+              "bram_switch_0_BLK_MEM_PORTA1": {
                 "interface_ports": [
-                  "BRAM_PORT0",
-                  "bram_switch_1/BRAM_PORT0"
+                  "blk_mem_gen_1/BRAM_PORTA",
+                  "bram_switch_1/BLK_MEM_PORT1"
+                ]
+              },
+              "BRAM_PORT_1": {
+                "interface_ports": [
+                  "BRAM_PORT",
+                  "bram_switch_1/BRAM_PORT1"
                 ]
               }
             },
@@ -1653,12 +1710,6 @@
               }
             },
             "interface_nets": {
-              "bram_switch_0_BLK_MEM_PORTA1": {
-                "interface_ports": [
-                  "blk_mem_gen_1/BRAM_PORTA",
-                  "bram_switch_1/BLK_MEM_PORT1"
-                ]
-              },
               "BRAM_PORT_1": {
                 "interface_ports": [
                   "BRAM_PORT",
@@ -1675,6 +1726,12 @@
                 "interface_ports": [
                   "BRAM_PORT0",
                   "bram_switch_1/BRAM_PORT0"
+                ]
+              },
+              "bram_switch_0_BLK_MEM_PORTA1": {
+                "interface_ports": [
+                  "blk_mem_gen_1/BRAM_PORTA",
+                  "bram_switch_1/BLK_MEM_PORT1"
                 ]
               }
             },
@@ -3005,30 +3062,6 @@
               }
             },
             "interface_nets": {
-              "Conn2": {
-                "interface_ports": [
-                  "BRAM_PORT0",
-                  "bram_mux_0/BRAM_PORT0"
-                ]
-              },
-              "bram_switch_1_BLK_MEM_PORT0": {
-                "interface_ports": [
-                  "blk_mem_gen_0/BRAM_PORTA",
-                  "bram_switch_1/BLK_MEM_PORT0"
-                ]
-              },
-              "BRAM_OUTPUTS_1": {
-                "interface_ports": [
-                  "BRAM_OUTPUTS",
-                  "bram_mux_1/BRAM_PORT1"
-                ]
-              },
-              "bram_mux_0_BRAM_PORT": {
-                "interface_ports": [
-                  "bram_mux_0/BRAM_PORT",
-                  "bram_switch_1/BRAM_PORT0"
-                ]
-              },
               "bram_switch_1_BLK_MEM_PORT1": {
                 "interface_ports": [
                   "blk_mem_gen_1/BRAM_PORTA",
@@ -3051,6 +3084,30 @@
                 "interface_ports": [
                   "bram_mux_1/BRAM_PORT",
                   "bram_switch_1/BRAM_PORT1"
+                ]
+              },
+              "Conn2": {
+                "interface_ports": [
+                  "BRAM_PORT0",
+                  "bram_mux_0/BRAM_PORT0"
+                ]
+              },
+              "bram_switch_1_BLK_MEM_PORT0": {
+                "interface_ports": [
+                  "blk_mem_gen_0/BRAM_PORTA",
+                  "bram_switch_1/BLK_MEM_PORT0"
+                ]
+              },
+              "BRAM_OUTPUTS_1": {
+                "interface_ports": [
+                  "BRAM_OUTPUTS",
+                  "bram_mux_1/BRAM_PORT1"
+                ]
+              },
+              "bram_mux_0_BRAM_PORT": {
+                "interface_ports": [
+                  "bram_mux_0/BRAM_PORT",
+                  "bram_switch_1/BRAM_PORT0"
                 ]
               }
             },
@@ -3642,6 +3699,12 @@
           }
         },
         "interface_nets": {
+          "bram_connect_4_M_BRAM0": {
+            "interface_ports": [
+              "bram_connect_2/S_BRAM",
+              "bram_connect_4/M_BRAM0"
+            ]
+          },
           "bram_read_delay_1_S_BRAM": {
             "interface_ports": [
               "bram_filter_1/BRAM_PORT0",
@@ -3736,12 +3799,6 @@
             "interface_ports": [
               "bram_connect_2/M_BRAM0",
               "bram_read_delay_5/M_BRAM"
-            ]
-          },
-          "bram_connect_4_M_BRAM0": {
-            "interface_ports": [
-              "bram_connect_2/S_BRAM",
-              "bram_connect_4/M_BRAM0"
             ]
           },
           "bram_read_delay_3_S_BRAM": {
@@ -5746,6 +5803,10 @@
                 "value": "AXI4LITE",
                 "value_src": "constant"
               },
+              "FREQ_HZ": {
+                "value": "50000000",
+                "value_src": "user_prop"
+              },
               "ID_WIDTH": {
                 "value": "0",
                 "value_src": "constant"
@@ -5829,6 +5890,10 @@
               "MAX_BURST_LENGTH": {
                 "value": "1",
                 "value_src": "auto"
+              },
+              "CLK_DOMAIN": {
+                "value": "conv_accelerator_bd_processing_system7_0_0_FCLK_CLK0",
+                "value_src": "default_prop"
               }
             },
             "port_maps": {
@@ -5932,11 +5997,35 @@
         "ports": {
           "S_AXI_LITE_ACLK": {
             "type": "clk",
-            "direction": "I"
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_BUSIF": {
+                "value": "S_AXI_LITE",
+                "value_src": "constant"
+              },
+              "ASSOCIATED_RESET": {
+                "value": "S_AXI_LITE_ARESETN",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "conv_accelerator_bd_processing_system7_0_0_FCLK_CLK0",
+                "value_src": "default_prop"
+              },
+              "FREQ_HZ": {
+                "value": "50000000",
+                "value_src": "user_prop"
+              }
+            }
           },
           "S_AXI_LITE_ARESETN": {
             "type": "rst",
-            "direction": "I"
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_LOW",
+                "value_src": "constant"
+              }
+            }
           },
           "accelerator_controls_activation_bram": {
             "direction": "O"
