@@ -52,14 +52,35 @@ architecture Behavioral of index_gen is
     signal s_input_addr  : signed(INPUT_ADDR_WIDTH-1 downto 0);
     signal s_filter_addr : signed(FILTER_ADDR_WIDTH-1 downto 0);
 
+
     signal s_conv_done : std_logic; -- single bit to indicate one convolution should be done
+    signal s_tlast     : std_logic; -- so we can assign to TLAST
+    
+    signal debug_M_AXIS_TDATA_input_addr  : std_logic_vector(INPUT_ADDR_WIDTH-1 downto 0);
+    signal debug_M_AXIS_TDATA_filter_addr : std_logic_vector(FILTER_ADDR_WIDTH-1 downto 0);
+    signal debug_M_AXIS_TLAST             : std_logic;
+    signal debug_M_AXIS_TVALID            : std_logic;
+
+    attribute mark_debug : string;
+    attribute mark_debug of debug_M_AXIS_TDATA_input_addr   : signal is "true"; 
+    attribute mark_debug of debug_M_AXIS_TDATA_filter_addr  : signal is "true"; 
+    attribute mark_debug of debug_M_AXIS_TLAST              : signal is "true"; 
+    attribute mark_debug of debug_M_AXIS_TVALID             : signal is "true"; 
 
 begin
     M_AXIS_TDATA_input_addr  <= std_logic_vector(s_input_addr);
     M_AXIS_TDATA_filter_addr <= std_logic_vector(s_filter_addr);
+    M_AXIS_TLAST <= s_tlast;
 
     -- index gen output is allways valid (except for when being reset and after a convolution is done for one layer. Because we should be expecting conv_idle and a reset)
     M_AXIS_TVALID <= '1' when s_conv_done = '0' and conv_idle  = '0' and rst = '1' else '0';
+
+    -- FOR DEBUGGING
+    debug_M_AXIS_TDATA_input_addr  <= std_logic_vector(s_input_addr); 
+    debug_M_AXIS_TDATA_filter_addr <= std_logic_vector(s_filter_addr);
+    debug_M_AXIS_TVALID <= '1' when s_conv_done = '0' and conv_idle  = '0' and rst = '1' else '0';          
+    debug_M_AXIS_TLAST <= s_tlast;
+
 
     process(clk)
     begin
@@ -74,7 +95,7 @@ begin
                 s_input_addr  <= (others => '0');
                 s_filter_addr <= (others => '0');
 
-                M_AXIS_TLAST <= '0';
+                s_tlast <= '0';
                 s_conv_done <= '0';
 
             elsif (M_AXIS_TREADY = '1') then
@@ -83,14 +104,14 @@ begin
 
                 s_filter_addr <= s_filter_addr + 1; -- filter is always incremented by one
                 s_input_addr  <= s_input_addr  + 1; -- input is incremented by one only when none of the condtions below is true
-                M_AXIS_TLAST <= '0';
+                s_tlast <= '0';
 
                 -- when these conditions are met, next cycle should be the end of convolution for a single pixel of a feature map (so I can output tlast)
                 if(s_fc = unsigned(filter_c) - 1) then
                     if(s_fh = unsigned(filter_h) - 1) then
                         if (s_fw = unsigned(filter_w) - 2) then
                             -- CONVOLUTION FOR ONE PIXEL IS COMPLE (NEXT CYCLE)
-                            M_AXIS_TLAST <= '1';
+                            s_tlast <= '1';
                         end if;
                     end if;
                 end if;

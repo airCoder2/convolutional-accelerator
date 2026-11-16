@@ -73,9 +73,38 @@ architecture Behavioral of output_storage is
     signal s_tid  :  std_logic_vector(C_TID_WIDTH-1 downto 0); -- latched tid
     signal s_data :  std_logic_vector(DATA_WIDTH-1 downto 0);  -- latched tdata
 
+    signal output_storage_debug_BRAM_addr : std_logic_vector(32-1 downto 0);
+    -- low 2 bits of BRAM_addr are constant 0 (word aligned); synthesis would strip them and the ILA
+    -- can't probe a constant. Route them through a kept flop so they show up as real nets.
+    -- Same for bits 31:19: the BD only wires the lower 19 bits to the BRAM controller, so these have no load
+    -- and get removed. A kept flop gives them a load and a clock domain.
+    signal s_debug_addr_low  : std_logic_vector(1 downto 0)  := "11";
+    signal s_debug_addr_high : std_logic_vector(31 downto 19) := (others => '1');
+    attribute dont_touch : string;
+    attribute dont_touch of s_debug_addr_low  : signal is "true";
+    attribute dont_touch of s_debug_addr_high : signal is "true";
+    signal output_storage_debug_BRAM_din  : std_logic_vector(BRAM_DATA_WIDTH-1 downto 0);
+    signal output_storage_debug_BRAM_we   : std_logic_vector((BRAM_DATA_WIDTH/8)-1 downto 0);
 
+    attribute mark_debug : string;
+    attribute mark_debug of output_storage_debug_BRAM_addr : signal is "true";
+    attribute mark_debug of output_storage_debug_BRAM_din  : signal is "true";
+    attribute mark_debug of output_storage_debug_BRAM_we   : signal is "true";
 
 begin
+
+    -- debug signals
+    output_storage_debug_BRAM_addr <= s_debug_addr_high & BRAM_addr(18 downto 2) & s_debug_addr_low;
+
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            s_debug_addr_low  <= BRAM_addr(1 downto 0);
+            s_debug_addr_high <= BRAM_addr(31 downto 19);
+        end if;
+    end process;
+    output_storage_debug_BRAM_din  <= BRAM_din;
+    output_storage_debug_BRAM_we   <= BRAM_we;
 
     BRAM_clk <= clk;
 
@@ -199,9 +228,9 @@ begin
 
                 conv_complete <= '0';
 
-                BRAM_rst <= '0';
+                BRAM_rst <= '1'; -- BRAM RST pin is active high
             else
-                BRAM_rst <= '1';
+                BRAM_rst <= '0';
                 -- Update state register
                 current_state <= next_state;
 

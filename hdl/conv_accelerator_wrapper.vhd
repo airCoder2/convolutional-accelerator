@@ -197,9 +197,31 @@ architecture Behavioral of conv_accelerator_wrapper is
     signal s_mac3_bias : std_logic_vector(31 downto 0);
     signal s_q_scale : std_logic_vector(MAC_OUTPUT_DATA_WIDTH-1 downto 0);
     signal s_q_zero : std_logic_vector(MAC_DATA_WIDTH-1 downto 0);
+
+    attribute mark_debug : string;
+    attribute mark_debug of s_max_pooling : signal is "true";
+    attribute mark_debug of s_relu : signal is "true";
+    attribute mark_debug of s_filter_w: signal is "true"; 
+    attribute mark_debug of s_filter_h: signal is "true"; 
+    attribute mark_debug of s_filter_c: signal is "true";
+    attribute mark_debug of s_output_w: signal is "true"; 
+    attribute mark_debug of s_output_h: signal is "true";
+    attribute mark_debug of s_input_end_diff_fw: signal is "true"; 
+    attribute mark_debug of s_input_end_diff_fh: signal is "true"; 
+    attribute mark_debug of s_input_end_diff_fc: signal is "true"; 
+    attribute mark_debug of s_input_end_diff_ow: signal is "true"; 
+    attribute mark_debug of s_output_elements_per_channel: signal is "true";
+    attribute mark_debug of s_output_initial_offset: signal is "true";
+    attribute mark_debug of s_mac0_bias: signal is "true";
+    attribute mark_debug of s_mac1_bias: signal is "true";
+    attribute mark_debug of s_mac2_bias: signal is "true";
+    attribute mark_debug of s_mac3_bias: signal is "true";
+    attribute mark_debug of s_q_scale: signal is "true";
+    attribute mark_debug of s_q_zero: signal is "true";
 begin
 
-    s_reset <= not S_AXI_LITE_ARESETN;
+    -- s_reset <= not S_AXI_LITE_ARESETN; 
+    s_reset <= S_AXI_LITE_ARESETN; -- template had it inverted, but I have everyhing active low, soo changing it
     s_clk <= S_AXI_LITE_ACLK;
 
     -- AXI LITE configuration registers

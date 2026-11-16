@@ -65,7 +65,7 @@ begin
     BRAM_din <= (others => '0');
     BRAM_en <= en;
     BRAM_we <= (others => '0');
-    BRAM_rst <= rst;
+    BRAM_rst <= not rst; -- BRAM RST pin is active high; rst is active low
     BRAM_clk <= clk;
 
 end Behavioral;

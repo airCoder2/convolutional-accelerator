@@ -230,7 +230,51 @@ END COMPONENT;
     signal s_dequantization_m_axis_tid : std_logic_vector(1 downto 0);
     signal s_dequantization_m_axis_tvalid : std_logic;
 
+    -- debug signals on the input data going into each MAC (A/B packed in tdata, C = bias)
+    signal mac0_debug_S_AXIS_TDATA_AB : std_logic_vector(MAC_DATA_WIDTH*2-1 downto 0);
+    signal mac0_debug_bias_C          : std_logic_vector(MAC_OUTPUT_DATA_WIDTH-1 downto 0);
+    signal mac0_debug_S_AXIS_TVALID   : std_logic;
+    signal mac1_debug_S_AXIS_TDATA_AB : std_logic_vector(MAC_DATA_WIDTH*2-1 downto 0);
+    signal mac1_debug_bias_C          : std_logic_vector(MAC_OUTPUT_DATA_WIDTH-1 downto 0);
+    signal mac1_debug_S_AXIS_TVALID   : std_logic;
+    signal mac2_debug_S_AXIS_TDATA_AB : std_logic_vector(MAC_DATA_WIDTH*2-1 downto 0);
+    signal mac2_debug_bias_C          : std_logic_vector(MAC_OUTPUT_DATA_WIDTH-1 downto 0);
+    signal mac2_debug_S_AXIS_TVALID   : std_logic;
+    signal mac3_debug_S_AXIS_TDATA_AB : std_logic_vector(MAC_DATA_WIDTH*2-1 downto 0);
+    signal mac3_debug_bias_C          : std_logic_vector(MAC_OUTPUT_DATA_WIDTH-1 downto 0);
+    signal mac3_debug_S_AXIS_TVALID   : std_logic;
+
+    attribute mark_debug : string;
+    attribute mark_debug of mac0_debug_S_AXIS_TDATA_AB : signal is "true";
+    attribute mark_debug of mac0_debug_bias_C : signal is "true";
+    attribute mark_debug of mac0_debug_S_AXIS_TVALID : signal is "true";
+
+    attribute mark_debug of mac1_debug_S_AXIS_TDATA_AB : signal is "true";
+    attribute mark_debug of mac1_debug_bias_C : signal is "true";
+    attribute mark_debug of mac1_debug_S_AXIS_TVALID : signal is "true";
+
+    attribute mark_debug of mac2_debug_S_AXIS_TDATA_AB : signal is "true";
+    attribute mark_debug of mac2_debug_bias_C : signal is "true";
+    attribute mark_debug of mac2_debug_S_AXIS_TVALID : signal is "true";
+
+    attribute mark_debug of mac3_debug_S_AXIS_TDATA_AB : signal is "true";
+    attribute mark_debug of mac3_debug_bias_C : signal is "true";
+    attribute mark_debug of mac3_debug_S_AXIS_TVALID : signal is "true";
+
 begin
+
+    mac0_debug_S_AXIS_TDATA_AB <= s_mac0_s_axis_tdata;
+    mac0_debug_bias_C          <= mac0_bias;
+    mac0_debug_S_AXIS_TVALID   <= s_mac0_s_axis_tvalid;
+    mac1_debug_S_AXIS_TDATA_AB <= s_mac1_s_axis_tdata;
+    mac1_debug_bias_C          <= mac1_bias;
+    mac1_debug_S_AXIS_TVALID   <= s_mac1_s_axis_tvalid;
+    mac2_debug_S_AXIS_TDATA_AB <= s_mac2_s_axis_tdata;
+    mac2_debug_bias_C          <= mac2_bias;
+    mac2_debug_S_AXIS_TVALID   <= s_mac2_s_axis_tvalid;
+    mac3_debug_S_AXIS_TDATA_AB <= s_mac3_s_axis_tdata;
+    mac3_debug_bias_C          <= mac3_bias;
+    mac3_debug_S_AXIS_TVALID   <= s_mac3_s_axis_tvalid;
 
     TEST_s_index_gen_m_axis_tready <= s_index_gen_m_axis_tready;
     TEST_s_index_gen_m_axis_tdata_input_addr <= s_index_gen_m_axis_tdata_input_addr;
