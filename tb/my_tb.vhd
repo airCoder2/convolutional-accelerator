@@ -211,7 +211,7 @@ begin
     process(BRAM_INPUT_clk)
     begin
         if rising_edge(BRAM_INPUT_clk) then
-            if (BRAM_INPUT_rst = '0') then
+            if (BRAM_INPUT_rst = '1') then
                 BRAM_INPUT_dout_delay1 <= (others => '0');
             elsif (BRAM_INPUT_en = '1') then
                 BRAM_INPUT_dout_delay1 <= BRAM_INPUT_data((32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_INPUT_addr(32-1 downto 2))))));
@@ -223,7 +223,7 @@ begin
     process(BRAM_FILTER0_clk)
     begin
         if rising_edge(BRAM_FILTER0_clk) then
-            if (BRAM_FILTER0_rst = '0') then
+            if (BRAM_FILTER0_rst = '1') then
                 BRAM_FILTER0_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER0_en = '1') then
                 BRAM_FILTER0_dout_delay1 <= BRAM_FILTER0_data((32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER0_addr(32-1 downto 2))))));
@@ -235,7 +235,7 @@ begin
     process(BRAM_FILTER1_clk)
     begin
         if rising_edge(BRAM_FILTER1_clk) then
-            if (BRAM_FILTER1_rst = '0') then
+            if (BRAM_FILTER1_rst = '1') then
                 BRAM_FILTER1_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER1_en = '1') then
                 BRAM_FILTER1_dout_delay1 <= BRAM_FILTER1_data((32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER1_addr(32-1 downto 2))))));
@@ -247,7 +247,7 @@ begin
     process(BRAM_FILTER2_clk)
     begin
         if rising_edge(BRAM_FILTER2_clk) then
-            if (BRAM_FILTER2_rst = '0') then
+            if (BRAM_FILTER2_rst = '1') then
                 BRAM_FILTER2_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER2_en = '1') then
                 BRAM_FILTER2_dout_delay1 <= BRAM_FILTER2_data((32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER2_addr(32-1 downto 2))))));
@@ -259,7 +259,7 @@ begin
     process(BRAM_FILTER3_clk)
     begin
         if rising_edge(BRAM_FILTER3_clk) then
-            if (BRAM_FILTER3_rst = '0') then
+            if (BRAM_FILTER3_rst = '1') then
                 BRAM_FILTER3_dout_delay1 <= (others => '0');
             elsif (BRAM_FILTER3_en = '1') then
                 BRAM_FILTER3_dout_delay1 <= BRAM_FILTER3_data((32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2)))+1))-1 downto (32*(to_integer(unsigned(BRAM_FILTER3_addr(32-1 downto 2))))));
@@ -271,7 +271,7 @@ begin
     process(BRAM_OUTPUT_clk)
     begin
         if rising_edge(BRAM_OUTPUT_clk) then
-            if (BRAM_OUTPUT_rst = '0' or conv_idle = '1') then
+            if (BRAM_OUTPUT_rst = '1' or conv_idle = '1') then
                 BRAM_OUTPUT_dout_delay1 <= (others => '0');
                 BRAM_OUTPUT_data <= (others => '0');
             elsif (BRAM_OUTPUT_en = '1') then

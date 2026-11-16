@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "Types.h"
 #include "Utils.h"
+#include "xtime_l.h"
 
 
 #pragma once
@@ -37,13 +38,15 @@ using namespace ML;
 #define MLP_FILTER2 ((ui8*)MLP_BRAM_BASEADDR + (1 << 18) + (2 << 11))
 #define MLP_FILTER3 ((ui8*)MLP_BRAM_BASEADDR + (1 << 18) + (3 << 11))
 
-#define MLP_CTRLA                       (MLP_CONV_BASEADDR + 0x00)
-#define MLP_CTRLA_CONV_IDLE             (1 << 0)
-#define MLP_CTRLB                       (MLP_CONV_BASEADDR + 0x04)
-#define MLP_CTRLB_SWAP_FILTERS          (1 << 0)
-#define MLP_CTRLB_SWAP_ACTIVATIONS      (1 << 1)
-#define MLP_CTRLB_MAX_POOLING           (1 << 2)
-#define MLP_CTRLB_RELU                  (1 << 3)
+#define MLP_CONV_IDLE_REG               (MLP_CONV_BASEADDR + 0x00)
+#define MLP_CONV_IDLE_ON_MASK           (1 << 0)
+#define MLP_CONV_IDLE_OFF_MASK          (0 << 0)
+
+#define MLP_CTRL                       (MLP_CONV_BASEADDR + 0x04)
+#define MLP_CTRL_SWAP_FILTERS          (1 << 0)
+#define MLP_CTRL_SWAP_ACTIVATIONS      (1 << 1)
+#define MLP_CTRL_MAX_POOLING           (1 << 2)
+#define MLP_CTRL_RELU                  (1 << 3)
 // #define MLP_RESERVED                   (MLP_CONV_BASEADDR + 0x08)
 #define MLP_FILTER_W                    (MLP_CONV_BASEADDR + 0x0C)
 #define MLP_FILTER_H                    (MLP_CONV_BASEADDR + 0x10)
@@ -146,7 +149,7 @@ static inline void runMemoryTest() {
     memcheck_write(MLP_FILTER3, (1 << 11), 13);
 
     std::cout << "Swapping filter banks 1\n";
-    Xil_Out32(MLP_CTRLB, MLP_CTRLB_SWAP_FILTERS); // Swap filter banks
+    Xil_Out32(MLP_CTRL, MLP_CTRL_SWAP_FILTERS); // Swap filter banks
 
     std::cout << "Write to bank 1\n";
     memcheck_write(MLP_FILTER0, (1 << 11), 20);
@@ -163,7 +166,7 @@ static inline void runMemoryTest() {
     memcheck_verify(MLP_FILTER3, (1 << 11), 23);
 
     std::cout << "Verify bank 0\n";
-    Xil_Out32(MLP_CTRLB, MLP_CTRLB_SWAP_ACTIVATIONS); // Swap banks back
+    Xil_Out32(MLP_CTRL, MLP_CTRL_SWAP_ACTIVATIONS); // Swap banks back
     memcheck_verify(MLP_FILTER0, (1 << 11), 10);
     memcheck_verify(MLP_FILTER1, (1 << 11), 11);
     memcheck_verify(MLP_FILTER2, (1 << 11), 12);
@@ -248,8 +251,13 @@ extern "C" int main()
     printf("The size of filter 3 is: %u\n", sizeof(filters[2]));
     printf("The size of filter 4 is: %u\n", sizeof(filters[3]));
 
+    // setting conv_idle = 1
+    Xil_Out32(MLP_CONV_IDLE_REG, MLP_CONV_IDLE_ON_MASK); 
+
+    // putting the inputs into BRAM
     memcpy_dma(MLP_INPUTS, inputs, sizeof(inputs));
 
+    // putting the filters into BRAM
     memcpy_dma(MLP_FILTER0, filters[0], sizeof(filters[0]));
     memcpy_dma(MLP_FILTER1, filters[1], sizeof(filters[0]));
     memcpy_dma(MLP_FILTER2, filters[2], sizeof(filters[0]));
@@ -265,62 +273,45 @@ extern "C" int main()
 
     printf("Custom array dma check is done\n");
 
-        // set conv_idle to 0, while we are setthing things up
-        conv_idle <= '1';
-       
-        // make all the DMA transferes here
+    // HERE
+    //Xil_Out32(MLP_CTRL, 0x0000000); // so basically everyhing is off. not swaaping filters/inputs, maxpooling/relu are both off
+    Xil_Out32(MLP_CTRL, MLP_CTRL_SWAP_FILTERS); // so basically everyhing is off, but swaaping filters.  maxpooling/relu are both off, not swappig in/out buffers
 
-        
-        // set max polling 
-        max_pooling <= '0';
+    Xil_Out32(MLP_FILTER_W                   , 0x00000003);
+    Xil_Out32(MLP_FILTER_H                   , 0x00000002);
+    Xil_Out32(MLP_FILTER_C                   , 0x00000002);
+    Xil_Out32(MLP_OUTPUT_W                   , 0x00000002);
+    Xil_Out32(MLP_OUTPUT_H                   , 0x00000002);
+    Xil_Out32(MLP_INPUT_END_DIFF_FW          , 0x00000002);
+    Xil_Out32(MLP_INPUT_END_DIFF_FH          , 0x00000006);
+    Xil_Out32(MLP_INPUT_END_DIFF_FC          , 0xFFFFFFEF);
+    Xil_Out32(MLP_INPUT_END_DIFF_OW          , 0xFFFFFFF1);
+    Xil_Out32(MLP_OUTPUT_ELEMENTS_PER_CHANNEL, 0x00000004);
+    Xil_Out32(MLP_OUTPUT_INITIAL_OFFSET      , 0x00000000);
+    Xil_Out32(MLP_MAC0_BIAS                  , 0x00000000);
+    Xil_Out32(MLP_MAC1_BIAS                  , 0x00000001);
+    Xil_Out32(MLP_MAC2_BIAS                  , 0x00000002);
+    Xil_Out32(MLP_MAC3_BIAS                  , 0x00000003);
+    Xil_Out32(MLP_Q_SCALE                    , 0x04000000);
+    Xil_Out32(MLP_Q_ZERO                     , 0x00000000);
 
-        // set relu
-        relu <= '0';
 
-        // set filter w
-        filter_w <= x"00000003";
 
-        // set filter h
-        filter_h <= x"00000002";
+    // AHHHHHH I needed to swap filters after writing
+    // Because, because because DMA interface is connected to the bank that is not connected to the accelerator
+    // Soo by switching, I connect the filled bank to the accelerator.
+    Xil_Out32(MLP_CONV_IDLE_REG, MLP_CONV_IDLE_OFF_MASK); 
 
-        // set filter c
-        filter_c <= x"00000002";
+    while (!Xil_In32(MLP_CONV_IDLE_REG)){}
 
-        // set filter w 
-        output_w <= x"00000002";
 
-        // set ouput h
-        output_h <= x"00000002";
 
-        //set these
-        input_end_diff_fw <= x"00000002";
-        input_end_diff_fh <= x"00000006";
-        input_end_diff_fc <= x"FFFFFFEF";
-        input_end_diff_ow <= x"FFFFFFF1";
 
-        // set element per channel
-        output_elements_per_channel <= x"00000004";
+    printf("Convolution is done\n");
 
-        //set initial offset
-        output_initial_offset <= x"00000000";
 
-        // set biases
-        mac0_bias <= x"00000000";
-        mac1_bias <= x"00000001";
-        mac2_bias <= x"00000002";
-        mac3_bias <= x"00000003";
 
-        //set scale
-        q_scale <= x"04000000";
-
-        // set zero
-        q_zero <= x"00000000";
-
-        // drop conv_idle to 0 so the things start
-        conv_idle <= '0';
-
-        // wait until conve_idle becomes 1 again
-
+    
 
 
 

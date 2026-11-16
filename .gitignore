@@ -69,3 +69,10 @@ IDE.log
 # Exported hardware platforms (generated, large binaries)
 *.xsa
 software_integration/xsas/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Vivado crash dumps
+hs_err_pid*.log
+hs_err_pid*.jou

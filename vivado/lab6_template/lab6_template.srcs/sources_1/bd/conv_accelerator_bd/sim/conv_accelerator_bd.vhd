@@ -1,7 +1,7 @@
 --Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2020.1 (lin64) Build 2902540 Wed May 27 19:54:35 MDT 2020
---Date        : Sun Nov 15 16:24:13 2026
+--Date        : Sun Nov 15 23:41:23 2026
 --Host        : co2050-06.ece.iastate.edu running 64-bit unknown
 --Command     : generate_target conv_accelerator_bd.bd
 --Design      : conv_accelerator_bd
@@ -2111,7 +2111,7 @@ use UNISIM.VCOMPONENTS.ALL;
     FIXED_IO_ps_srstb : inout STD_LOGIC
   );
   attribute CORE_GENERATION_INFO : string;
-  attribute CORE_GENERATION_INFO of conv_accelerator_bd : entity is "conv_accelerator_bd,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=conv_accelerator_bd,x_ipVersion=1.00.a,x_ipLanguage=VHDL,numBlks=43,numReposBlks=37,numNonXlnxBlks=0,numHierBlks=6,maxHierDepth=2,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=19,numPkgbdBlks=0,bdsource=USER,""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""da_clkrst_cnt""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""=1,synth_mode=Global}";
+  attribute CORE_GENERATION_INFO of conv_accelerator_bd : entity is "conv_accelerator_bd,IP_Integrator,{x_ipVendor=xilinx.com,x_ipLibrary=BlockDiagram,x_ipName=conv_accelerator_bd,x_ipVersion=1.00.a,x_ipLanguage=VHDL,numBlks=43,numReposBlks=37,numNonXlnxBlks=0,numHierBlks=6,maxHierDepth=2,numSysgenBlks=0,numHlsBlks=0,numHdlrefBlks=19,numPkgbdBlks=0,bdsource=USER,""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""da_clkrst_cnt""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""=1,synth_mode=Global}";
   attribute HW_HANDOFF : string;
   attribute HW_HANDOFF of conv_accelerator_bd : entity is "conv_accelerator_bd.hwdef";
 end conv_accelerator_bd;
