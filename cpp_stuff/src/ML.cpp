@@ -19,6 +19,7 @@
 
 #ifdef ZEDBOARD
 #include <file_transfer/file_transfer.h>
+#include "MLP.h"
 #endif
 
 namespace ML
@@ -35,20 +36,20 @@ namespace ML
         // Output shape: 60x60x32
         model.addLayer<ConvolutionalLayer>(
             LayerParams{sizeof(i8), {64, 64, 3}},                                    // Input Data
-            LayerParams{sizeof(fp32), {60, 60, 32}},                                   // Output Data
+            LayerParams{sizeof(i8), {60, 60, 32}},                                   // Output Data
             LayerParams{sizeof(i8), {5, 5, 3, 32}, modelPath / "quantized_model_data"/ weights_dir/ "conv2d_weights.bin"}, // Weights
             LayerParams{sizeof(i32), {32}, modelPath / "quantized_model_data"/ biases_dir / "conv2d_biases.bin"}            // Bias
         );
 
-//        // --- Conv 2: L2 ---
-//        // Input shape: 60x60x32
-//        // Output shape: 56x56x32
-//        model.addLayer<ConvolutionalLayer>(
-//            LayerParams{sizeof(i8), {60, 60, 32}},                                    // Input Data
-//            LayerParams{sizeof(i8), {56, 56, 32}},                                   // Output Data
-//            LayerParams{sizeof(i8), {5, 3, 32, 32}, modelPath / "quantized_model_data"/weights_dir / "conv2d_1_weights.bin"}, // Weights
-//            LayerParams{sizeof(i32), {32}, modelPath / "quantized_model_data"/ biases_dir / "conv2d_1_biases.bin"}            // Bias
-//        );
+        // --- Conv 2: L2 ---
+        // Input shape: 60x60x32
+        // Output shape: 56x56x32
+        model.addLayer<ConvolutionalLayer>(
+            LayerParams{sizeof(i8), {60, 60, 32}},                                    // Input Data
+            LayerParams{sizeof(fp32), {56, 56, 32}},                                   // Output Data
+            LayerParams{sizeof(i8), {5, 5, 32, 32}, modelPath / "quantized_model_data"/weights_dir / "conv2d_1_weights.bin"}, // Weights
+            LayerParams{sizeof(i32), {32}, modelPath / "quantized_model_data"/ biases_dir / "conv2d_1_biases.bin"}            // Bias
+        );
 //
 //        // --- MPL 1: L3 ---
 //        // Input shape: 56x56x32
@@ -227,7 +228,7 @@ namespace ML
         Model model = buildToyModel(basePath);
         model.allocLayers(); // ME: allocates memory to store out_data from each leayer
 
-        runInferenceTest(model, basePath / "test_input"/"test_input_image.bin", basePath / "test_input_feature_maps" / "conv2d_feature.bin");
+        runInferenceTest(model, basePath / "test_input"/"test_input_image.bin", basePath / "test_input_feature_maps" / "conv2d_1_feature.bin");
  //       runInferenceTest(model, basePath / "test_input_feature_maps"/"dense_feature.bin", basePath / "test_input_feature_maps" / "dense_1_feature.bin");
 
         // Clean up

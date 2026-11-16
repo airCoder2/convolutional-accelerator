@@ -50,19 +50,6 @@ namespace ML
     // ME: the LayerData object passed has been loaded before (by img.loadData() no need to do it again)
     void ConvolutionalLayer::computeNaive(const LayerData &dataIn, const int layer_num) const
     {
-        // TODO: Your Code Here...
-        // The following line is an example of copying a single 32-bit floating point integer from the input layer data to the output layer data
-        // ME: so instead of doing this, I have to put the correct one to the output (The convolved version of the input)
-        
-        //std::cout << "bias count of the conv layer " << getBiasData().getParams().flat_count() << std::endl;
-        //std::cout << "fist 10 weights: \n" << std::endl;
-        //for (size_t i = 0; i < 10; i++)
-        //{
-        //    std::cout << i << ": " << getWeightData().get<fp32>(i) << std::endl;
-        //}
-
-        //getOutputData().get<fp32>(0) = dataIn.get<fp32>(0);
-
         // {64, 64, 3}
         size_t image_h = getInputParams().dims[0];
         size_t image_w = getInputParams().dims[1];
@@ -82,7 +69,6 @@ namespace ML
         size_t j = 0, l = 0, i = 0, k = 0, d = 0, b = 0;
     
         // where I accumulate the sum
-
         double M;      
         double z_next; 
         
@@ -100,43 +86,11 @@ namespace ML
             M      = SI_VALS[layer_num + 1] / (SI_VALS[layer_num] * SW_VALS[layer_num]);
             z_next = SZ_VALS[layer_num + 1];
         }
+        //    M = 2^32 
+        i64 q_scale = static_cast<i64>(M * std::pow(2, 32));
 
-        i32 sum;
-                 /*ROW MAJOR*/       
-//        for (b = 0; b < kernel_b; b++){
-//            for (j = 0; j < out_h; j++){
-//                for (l = 0; l < out_w; l++){
-//
-//                    sum = getBiasData().get<i32>(b);
-//
-//                    for (d = 0; d < kernel_d; d++){
-//                        for (i = 0; i < kernel_h; i++){
-//                            for (k = 0; k < kernel_w; k++){
-//                                sum += 
-//                                (
-//                                    getWeightData().get<i8>(get_kernel_flat_idx(i, k, d, b, kernel_w, kernel_d, kernel_b))
-//                                    *
-//                                    dataIn.get<i8>(get_image_flat_idx(j + i, l + k, d, image_w, image_d))
-//                                );
-//                            }
-//                        }
-//                    }
-//
-//                    //double out_val = std::round(sum * M) + z_next;   // requantize
-//                    //out_val = std::clamp(out_val, z_next, 127.0);                    // RELU 
-//                    
-//                    // cast it to i8 and assign to output
-//                    //getOutputData().get<i8>(get_out_flat_idx(j, l, b, out_w, kernel_b)) = static_cast<i8>(out_val);
-//
-//                    double out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
-//                    out_val = out_val > 0.0 ? out_val : 0;
-//                    getOutputData().get<fp32>(get_out_flat_idx(j, l, b, out_w, kernel_b)) = out_val;
-//               }
-//           }
-//        }
+        i64 sum;
 
-
-                 /*column*/       
         for (b = 0; b < kernel_b; b++){
             for (j = 0; j < out_h; j++){
                 for (l = 0; l < out_w; l++){
@@ -146,37 +100,18 @@ namespace ML
                     for (d = 0; d < kernel_d; d++){
                         for (i = 0; i < kernel_h; i++){
                             for (k = 0; k < kernel_w; k++){
-                            //    sum += 
-                            //    (
-                            //        getWeightData().get<i8>(get_kernel_flat_idx_cm(i, k, d, b, kernel_w, kernel_d, kernel_h))
-                            //        *
-                            //        dataIn.get<i8>(get_image_flat_idx(j + i, l + k, d, image_w, image_d))
-                            //    );
-                            // WE ARE UNPACKING here.
+
                                 i8 weight = getWeightData().get<i8>(get_kernel_flat_idx_cm(i, k, d, b, kernel_w, kernel_d, kernel_h));
-
-                                //i8 weight_low = static_cast<i8>((static_cast<ui8>(weight) & 0x0F) << 4) >> 4;
-                                //i8 weight_high = static_cast<i8>((static_cast<ui8>(weight) & 0xF0)) >> 4;
-
-                                //i8 activation_low = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k, d, image_w, image_h));
-                                //i8 activation_high = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k + 1, d, image_w, image_h));
-//
-//                                i8 activation_low = dataIn.get<i8>(get_image_flat_idx(j + i, l + 2*k, d, image_w, image_d));
-//                                i8 activation_high = dataIn.get<i8>(get_image_flat_idx(j + i, l + 2*k + 1, d, image_w, image_d));
-
-
                                 i8 activation = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + k, d, image_w, image_h));
                                 
-                                sum += 
-                                (
-                                    weight * activation
-                                );
+                                sum += (weight * activation);
                             }
                         }
                     }
                     double out_val;
+                    i64 requantized_out_val;
 
-                    if (layer_num == 0)
+                    if (layer_num == 1)
                     {
                         out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
                         out_val = out_val > 0.0 ? out_val : 0;
@@ -184,18 +119,26 @@ namespace ML
                     }
                     else
                     {
-                        out_val = std::round(sum * M) + z_next;   // requantize
-                        out_val = std::clamp(out_val, z_next, static_cast<double>(max_value));                    // RELU 
+                        // Requintize:
+                        // doing fixed point instead of floating point.
+                        i64 product = sum * q_scale;
+                        requantized_out_val = product >> 32;
+                        requantized_out_val = requantized_out_val > 0 ? requantized_out_val : 0; // ReLU
+                        requantized_out_val = requantized_out_val + z_next; // zero
+                        requantized_out_val = std::clamp(requantized_out_val, static_cast<i64>(min_value), static_cast<i64>(max_value));     //saturate
                         
                         // cast it to i8 and assign to output
-                        getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = static_cast<i8>(out_val);
+                        getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = static_cast<i8>(requantized_out_val);
                     }
                }
            }
         }
 
         // if this is the final layer, then reorder data for comparison
-        if(layer_num == 0){
+        // This basically convert from D H W  ------>  H W D
+        // because intermediate feature maps are of that format, and I didn't want to
+        // export my weights diffrently for maximum robustness
+        if(layer_num == 1){
             LayerData reordered_data(getOutputParams());
             reordered_data.allocData();
 
@@ -226,93 +169,14 @@ namespace ML
     // Compute the convolution using threads
     void ConvolutionalLayer::computeThreaded(const LayerData &dataIn) const
     {
-        // TODO: Your Code Here...
     }
 
     // Compute the convolution using a tiled approach
     void ConvolutionalLayer::computeTiled(const LayerData &dataIn) const
     {
-        // TODO: Your Code Here...
     }
 
-    #define MAX_CHANNELS 128
-    // Compute the convolution using SIMD
-    // Dawud's note: TODO: actually use SIMD insts or ensure compiler assumes SIMD.
-    //              reduces time greatly so seems to work for cache efficentcy tho
-    //              changes from each channel 1-by-1 to concurrently doing each channel. 
-    //              Could parallelize this to do multiple calculates at once on our hardware
     void ConvolutionalLayer::computeSIMD(const LayerData &dataIn, const int layer_num) const
     {
-        // Optimized Convolution Loop to improve cache efficentcy
-        size_t image_w = getInputParams().dims[1];
-        size_t image_d = getInputParams().dims[2];
-
-        size_t out_h = getOutputParams().dims[0];
-        size_t out_w = getOutputParams().dims[1];
-
-        size_t kernel_h = getWeightParams().dims[0];
-        size_t kernel_w = getWeightParams().dims[1];
-        size_t kernel_d = getWeightParams().dims[2];
-        size_t kernel_b = getWeightParams().dims[3];
-
-    
-        size_t j = 0, l = 0, i = 0, k = 0, d = 0, b = 0;
-
-        // select scale
-        float M, z_next;
-        
-        if (layer_num == 1 || layer_num == 4 || layer_num == 5)
-        {
-            M      = SI_VALS[layer_num + 2] / (SI_VALS[layer_num] * SW_VALS[layer_num]);
-            z_next = SZ_VALS[layer_num + 2];
-        }
-        else if (layer_num == 7)
-        {
-            M      = SI_VALS[layer_num + 3] / (SI_VALS[layer_num] * SW_VALS[layer_num]);
-            z_next = SZ_VALS[layer_num + 3];
-        }
-        else
-        {
-            M      = SI_VALS[layer_num + 1] / (SI_VALS[layer_num] * SW_VALS[layer_num]);
-            z_next = SZ_VALS[layer_num + 1];
-        }
-
-        // accumulate sum
-        for (j = 0; j < out_h; j++) {
-            for (l = 0; l < out_w; l++) {
-                
-                // one accumulate for each output chanel 
-                i32 sum[MAX_CHANNELS] = {};
-
-                for (i = 0; i < kernel_h; i++) {
-                    for (k = 0; k < kernel_w; k++) {
-                        for (d = 0; d < kernel_d; d++) {
-                            
-                            // shared between channels
-                            i32 input_data = dataIn.get<i8>(get_image_flat_idx(j + i, l + k, d, image_w, image_d));
-                            size_t weight_base_addr = get_kernel_flat_idx(i, k, d, 0, kernel_w, kernel_d, kernel_b);
-                            
-                            // channel loop
-                            for (b = 0; b < kernel_b; b++) {
-                                sum[b] += getWeightData().get<i8>(weight_base_addr + b) * input_data;
-                            }
-                        }
-                    }
-                }
-
-                for (b = 0; b < kernel_b; b++) {
-                    // add bias
-                    i32 sum_plus_bias = sum[b] + getBiasData().get<i32>(b);
-                    
-                    fp32 out_val = std::round(sum_plus_bias * M) + z_next;   // requantize
-                    out_val = std::clamp(out_val, z_next, max_value);       // RELU 
-                
-                    // cast it to i8 and assign to output
-                    getOutputData().get<i8>(get_out_flat_idx(j, l, b, out_w, kernel_b)) = static_cast<i8>(out_val);
-                    
-                    sum[b] = 0;
-               }
-           }
-        }
     }
 } // namespace ML
