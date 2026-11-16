@@ -155,29 +155,32 @@ namespace ML
                             // WE ARE UNPACKING here.
                                 i8 weight = getWeightData().get<i8>(get_kernel_flat_idx_cm(i, k, d, b, kernel_w, kernel_d, kernel_h));
 
-                                i8 weight_low = static_cast<i8>((static_cast<ui8>(weight) & 0x0F) << 4) >> 4;
-                                i8 weight_high = static_cast<i8>((static_cast<ui8>(weight) & 0xF0)) >> 4;
+                                //i8 weight_low = static_cast<i8>((static_cast<ui8>(weight) & 0x0F) << 4) >> 4;
+                                //i8 weight_high = static_cast<i8>((static_cast<ui8>(weight) & 0xF0)) >> 4;
 
-                                i8 activation_low = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k, d, image_w, image_h));
-                                i8 activation_high = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k + 1, d, image_w, image_h));
+                                //i8 activation_low = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k, d, image_w, image_h));
+                                //i8 activation_high = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + 2*k + 1, d, image_w, image_h));
 //
 //                                i8 activation_low = dataIn.get<i8>(get_image_flat_idx(j + i, l + 2*k, d, image_w, image_d));
 //                                i8 activation_high = dataIn.get<i8>(get_image_flat_idx(j + i, l + 2*k + 1, d, image_w, image_d));
+
+
+                                i8 activation = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + k, d, image_w, image_h));
                                 
                                 sum += 
                                 (
-                                    weight_low * activation_low + weight_high * activation_high
+                                    weight * activation
                                 );
                             }
                         }
                     }
                     double out_val;
 
-                    if (layer_num == 100)
+                    if (layer_num == 0)
                     {
                         out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
                         out_val = out_val > 0.0 ? out_val : 0;
-                        getOutputData().get<fp32>(get_out_flat_idx(j, l, b, out_w, kernel_b)) = out_val;
+                        getOutputData().get<fp32>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = out_val;
                     }
                     else
                     {
@@ -189,6 +192,34 @@ namespace ML
                     }
                }
            }
+        }
+
+        // if this is the final layer, then reorder data for comparison
+        if(layer_num == 0){
+            LayerData reordered_data(getOutputParams());
+            reordered_data.allocData();
+
+            size_t o_widht = getOutputParams().dims[0];
+            size_t o_depth = getOutputParams().dims[2];
+            size_t o_height = getOutputParams().dims[1];
+
+            for (size_t i = 0; i < o_height; i++) // slowest chaning is height
+            {
+                for (size_t j = 0; j < o_widht; j++) // next fastest changing is widht
+                {
+                    for (size_t k = 0; k < o_depth; k++) // so fastest chaning is depth
+                    {
+                        // image_w * image_d * height_idx + image_d * width_idx + depth_idx;
+                        fp32 temp = getOutputData().get<fp32>(o_widht * o_height * k + o_widht * i + j);
+
+                        reordered_data.get<fp32>(o_depth * o_widht * i + o_depth * j + k) = temp; // DEPTH * WIDHT * (c_h) + DEPTH * (c_w) + c_d
+                    }
+                }
+                
+            }
+            getOutputData() = reordered_data;
+
+            reordered_data.freeData();
         }
     }
 
