@@ -248,7 +248,8 @@ namespace ML
         // Open our file and check for issues
 #ifdef ZEDBOARD
         FIL file;
-        if (f_open(&file, params.filePath.c_str(), FA_OPEN_EXISTING | FA_READ) == FR_OK)
+        FRESULT open_res = f_open(&file, params.filePath.c_str(), FA_OPEN_EXISTING | FA_READ);
+        if (open_res == FR_OK)
         { // Open our file on the SD card
 #else
         std::ifstream file(params.filePath, std::ios::binary); // Open our file
@@ -259,7 +260,11 @@ namespace ML
         }
         else
         {
+#ifdef ZEDBOARD
+            throw std::runtime_error("Failed to open binary file: " + params.filePath + " (FRESULT " + std::to_string((int)open_res) + ")");
+#else
             throw std::runtime_error("Failed to open binary file: " + params.filePath);
+#endif
         }
 
 #ifdef ZEDBOARD

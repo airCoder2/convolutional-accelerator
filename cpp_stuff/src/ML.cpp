@@ -18,8 +18,9 @@
 #include "layers/config.h"
 
 #ifdef ZEDBOARD
+#include <ff.h>
 #include <file_transfer/file_transfer.h>
-#include "MLP.h"
+#include "xil_printf.h"
 #endif
 
 namespace ML
@@ -202,51 +203,106 @@ namespace ML
                 }
                 
             }
+            unquantized_img.freeData();
+
+            Timer timer("Full Inference");
+
+            // Run inference on the model
+            timer.start();
+            const LayerData &output = model.inference(quantized_image, Layer::InfType::NAIVE);
+            timer.stop();
+
+
+
+//            LayerData unquantized_feature_map({sizeof(fp32), model[0].getOutputParams().dims}, ground_truth_pred_path);
+//            unquantized_feature_map.loadData();
+//
+//            LayerData quantized_feature_map(model[0].getOutputParams());
+//            quantized_feature_map.allocData();
+//
+//            for (size_t i = 0; i < 4; i++)
+//            {
+//                for (size_t j = 0; j < 60; j++)
+//                {
+//                    for (size_t k = 0; k < 60; k++)
+//                    {
+//                        // image_w * image_d * height_idx + image_d * width_idx + depth_idx;
+//                        i8 temp = static_cast<i8>(std::clamp(std::nearbyint((SI_VALS[1] * unquantized_feature_map.get<fp32>(img_w * img_d * j + img_d * k + i)) + SZ_VALS[1]), min_value, max_value));
+//                        quantized_feature_map.get<i8>(i * img_h * img_w + j * img_w + k) = temp;
+//                    }
+//                }
+//                
+//            }
+//            unquantized_feature_map.freeData();
+//        // MODIFIED LENGTH WEIGHTED COSINE SIMILARITY
+//        double dot_product = 0;
+//        double a_magnitude_sq = 0;
+//        double b_magnitude_sq = 0;
+//
+//        // Recurse as needed into each array
+//        for (std::size_t i = 0; i < 4 * 60 * 60; i++)
+//        {
+//            a_magnitude_sq += output.get<i8>(i) * output.get<i8>(i);
+//            b_magnitude_sq += quantized_feature_map.get<i8>(i) * quantized_feature_map.get<i8>(i);
+//            dot_product += output.get<i8>(i) * quantized_feature_map.get<i8>(i);
+//        }
+//
+//        float cosine_similarity = 0;
+//        if (a_magnitude_sq == 0 && b_magnitude_sq == 0)
+//        {
+//            std::cout << "Zero Magnitude Vector Comparison" << std::endl;
+//        }
+//        else
+//        {
+//            cosine_similarity = dot_product / (std::max(a_magnitude_sq, b_magnitude_sq));
+//        }
+//
 
 
         // free the unquantized image, we don't need to hold in our memory anymore
-        unquantized_img.freeData();
-
-        Timer timer("Full Inference");
-
-        // Run inference on the model
-        timer.start();
-        const LayerData &output = model.inference(quantized_image, Layer::InfType::NAIVE);
-        timer.stop();
-
-        // Compare the output
-        // Construct a LayerData object from a LayerParams one
-        LayerData expected_fp32({sizeof(fp32), model.getOutputLayer().getOutputParams().dims}, ground_truth_pred_path);
-        expected_fp32.loadData();
-
-        // write a thing, so we get to compare i8s rather than comparing fp32
-        LayerData expected_i8(model.getOutputLayer().getOutputParams()); 
-        expected_i8.allocData();
-
-        // This is for requintizing the feature map itself soo we get to compare the output of our requitized model with it.
-        // I did this because accelerator is going to be outputting an int8 not fp32. (because the dequant unit is built in)
-        // So now using this, I get to compare the output of the accelerator with what we should have gotten
-        for (size_t i = 0; i < model.getOutputLayer().getOutputParams().flat_count(); i++)
-        {
-            i8 requantized_expected = static_cast<i8>(std::clamp(std::nearbyint((SI_VALS[1] * expected_fp32.get<fp32>(i)) + SZ_VALS[1]), min_value, max_value));
-            expected_i8.get<i8>(i) = requantized_expected;
-        }
-        
 
 
-        //model.getNumLayers(); // this will be the last layer
+// ----------------COMMENTING THE REST FOR NOW. ACCELERATOR IS BEING TESTED
+//        // Compare the output
+//        // Construct a LayerData object from a LayerParams one
+//        LayerData expected_fp32({sizeof(fp32), model.getOutputLayer().getOutputParams().dims}, ground_truth_pred_path);
+//        expected_fp32.loadData();
+//
+//        // write a thing, so we get to compare i8s rather than comparing fp32
+//        LayerData expected_i8(model.getOutputLayer().getOutputParams()); 
+//        expected_i8.allocData();
+//
+//        // This is for requintizing the feature map itself soo we get to compare the output of our requitized model with it.
+//        // I did this because accelerator is going to be outputting an int8 not fp32. (because the dequant unit is built in)
+//        // So now using this, I get to compare the output of the accelerator with what we should have gotten
+//        for (size_t i = 0; i < model.getOutputLayer().getOutputParams().flat_count(); i++)
+//        {
+//            i8 requantized_expected = static_cast<i8>(std::clamp(std::nearbyint((SI_VALS[1] * expected_fp32.get<fp32>(i)) + SZ_VALS[1]), min_value, max_value));
+//            expected_i8.get<i8>(i) = requantized_expected;
+//        }
+//        
+//
+//
+//        //model.getNumLayers(); // this will be the last layer
+//
+//        //std::cout << "fp32 comparison:\n";
+//        //output.compareWithinPrint<fp32>(expected_fp32);
+//
+//        std::cout << "\n\ni8 comparison:\n";
+//        output.compareWithinPrint<i8>(expected_i8);
 
-        //std::cout << "fp32 comparison:\n";
-        //output.compareWithinPrint<fp32>(expected_fp32);
+          std::cout << "\n\nACCELERATOR TEST DONE!!!:\n";
 
-        std::cout << "\n\ni8 comparison:\n";
-        output.compareWithinPrint<i8>(expected_i8);
     }
 
     void runTests()
     {
         // Base input data path (determined from current directory of where you are running the command)
-        Path basePath("../python_stuff"); // May need to be altered for zedboards loading from SD Cards
+#ifdef ZEDBOARD
+        Path basePath("/data"); // SD card folder written by scripts/upload_data
+#else
+        Path basePath("../python_stuff");
+#endif
 
         // Build the model and allocate the buffers
         Model model = buildToyModel(basePath);
@@ -265,6 +321,7 @@ namespace ML
 #ifdef ZEDBOARD
 extern "C" int main()
 {
+	xil_printf("Hello UART\r\n");
     try
     {
         static FATFS fatfs;
@@ -278,9 +335,10 @@ extern "C" int main()
     {
         std::cerr << "\n\n----- EXCEPTION THROWN -----\n"
                   << e.what() << '\n';
+        std::cout << "\n\n----- STARTING FILE TRANSFER SERVER -----\n";
+        FileServer::start_file_transfer_server();
     }
-    std::cout << "\n\n----- STARTING FILE TRANSFER SERVER -----\n";
-    FileServer::start_file_transfer_server();
+    return 0;
 }
 #else
 int main()

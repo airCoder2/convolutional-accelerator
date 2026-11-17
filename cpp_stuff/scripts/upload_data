@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Run inference first, it will encounter an error and enter the file transfer server.
+# Otherwise, use `./scripts/file_transfer_vitis` to start the file transfer server directly.
+# Once started, it is listening for curl requests
+#
+# Usage: ./scripts/upload_data [path/to/data]
+# Uploads the contents of the given folder (default: ./data) to data/ on the SD card, which is where ML.cpp reads it.
+
+DATA_DIR="${1:-data}"
+if [ ! -d "$DATA_DIR" ]; then
+	echo "No data folder at $DATA_DIR"
+	exit 1
+fi
+cd "$DATA_DIR" || exit 1
+
+# Reformat SD card
+echo curl 192.168.1.2 -X REFORMAT
+curl 192.168.1.2 -X REFORMAT
+
+# Make all directories
+echo && echo curl 192.168.1.2/data/ -X POST
+curl 192.168.1.2/data/ -X POST -H Expect:
+find . -mindepth 1 -type d | sed 's|^\./||' | while read -r dir; do
+	echo && echo curl "192.168.1.2/data/$dir/" -X POST
+	curl "192.168.1.2/data/$dir/" -X POST -H Expect:
+done
+
+# Upload all files, except the validation images (val_image_*, val_labels.bin), which are only used on the PC
+find . -type f ! -name 'val_image_*' ! -name 'val_labels.bin' | sed 's|^\./||' | while read -r file; do
+	echo && echo curl "192.168.1.2/data/$file" -X POST --data-binary "@$file"
+	curl "192.168.1.2/data/$file" -X POST --data-binary "@$file" --progress-bar -H Expect: | cat
+done
+
+echo
+
+# Later, just use curl directly to download output files if needed
+# curl 192.168.1.2/output.bin

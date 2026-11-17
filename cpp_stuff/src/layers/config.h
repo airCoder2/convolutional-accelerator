@@ -6,6 +6,9 @@
 #include <array>
 #include <cstdint>
 
+#ifndef ZEDBOARD
+#define ZEDBOARD // normally passed as -DZEDBOARD by the Vitis project (see scripts/create_vitis)
+#endif
 #define QUANT_8_BIT
 //#define QUANT_4_BIT
 //#define QUANT_2_BIT
