@@ -270,7 +270,7 @@ namespace ML
         i8 weights[CHANNEL_NUM_TO_COMPUTE_AT_ONCE] = {0};
         i8 activation;
 
-        //for (b = 0; b < kernel_b; b+=4){  // BEGINNING OF BATCH IF. Doing this so I can compare one channel output
+        for (b = 0; b < kernel_b; b+=CHANNEL_NUM_TO_COMPUTE_AT_ONCE){  // BEGINNING OF BATCH IF. Doing this so I can compare one channel output
             for (j = 0; j < out_h; j++){
                 for (l = 0; l < out_w; l++){
 
@@ -322,7 +322,7 @@ namespace ML
                     }
                }
            }
-        //} END OF BATCH IF
+        } //END OF BATCH IF
 
 
         // OKAY I CAN CONFIRM MY ACCELERATOR channel 1 works here. BECUASE I HAVE CONFIRMED CORRECT OUTPUT DATA FOR THE FIRST 4 CHANNELS HERE
@@ -344,43 +344,14 @@ namespace ML
         memcpy_dma(MLP_INPUTS, dataIn.raw(), dataIn.getParams().byte_size()); // gets the byte size
 
         // putting the filters into BRAM
-        size_t single_filter_size = getWeightParams().dims            std::cout
-            << "Comparing Outputs (Cosine Similarity): "
-            << (result ? "True" : "False")
-            << " " << clamp(cosine_similarity * 100.0, 0.0, 100.0) << "% "
-            << " ("
-            << cosine_similarity
-            << ")\n";[0] * getWeightParams().dims[1] * getWeightParams().dims[2];
+        size_t single_filter_size = getWeightParams().dims[0] * getWeightParams().dims[1] * getWeightParams().dims[2];
         size_t single_output_size = getOutputParams().dims[0] * getOutputParams().dims[1];
 
         i32 input_end_diff_fw = static_cast<i32>(1 - static_cast<i64>(kernel_w) + image_w);
         i32 input_end_diff_fh = static_cast<i32>(input_end_diff_fw - (static_cast<i64>(image_w) * kernel_h) + (static_cast<i64>(image_w) * image_h));
         i32 input_end_diff_fc = static_cast<i32>(input_end_diff_fh - (static_cast<i64>(image_w) * image_h * kernel_d) + 1);
         i32 input_end_diff_ow = static_cast<i32>(input_end_diff_fc + (static_cast<i64>(kernel_w) - 1));
-
-
-        const auto* filters = static_cast<const uint8_t*>(getWeightData().raw());
-
-        memcpy_dma(MLP_FILTER0, filters + 0 * single_filter_size, single_filter_size);
-        memcpy_dma(MLP_FILTER1, filters + 1 * single_filter_size, single_filter_size);
-        memcpy_dma(MLP_FILTER2, filters + 2 * single_filter_size, single_filter_size);
-        memcpy_dma(MLP_FILTER3, filters + 3 * single_filter_size, single_filter_size);
-
-
-//
-//        memcheck(MLP_INPUTS, dataIn.raw(), dataIn.getParams().byte_size());
-//
-//        memcheck(MLP_FILTER0, getWeightData().raw() + 0 * single_filter_size , single_filter_size);
-//        memcheck(MLP_FILTER1, getWeightData().raw() + 1 * single_filter_size , single_filter_size);
-//        memcheck(MLP_FILTER2, getWeightData().raw() + 2 * single_filter_size , single_filter_size);
-//        memcheck(MLP_FILTER3, getWeightData().raw() + 3 * single_filter_size , single_filter_size);
-
-        printf("First four channel Dma check is done\n");
-
-        // HERE
-        //Xil_Out32(MLP_CTRL, 0x0000000); // so basically everyhing is off. not swaaping filters/inputs, maxpooling/relu are both off
-        Xil_Out32(MLP_CTRL, MLP_CTRL_SWAP_FILTERS | MLP_CTRL_RELU); // so basically everyhing is off, but swaaping filters.  maxpooling/relu are both off, not swappig in/out buffers
-
+        
         Xil_Out32(MLP_FILTER_W                   , kernel_w);
         Xil_Out32(MLP_FILTER_H                   , kernel_h);
         Xil_Out32(MLP_FILTER_C                   , kernel_d); // we don't care about batch, since we control it from outsise
@@ -391,33 +362,58 @@ namespace ML
         Xil_Out32(MLP_INPUT_END_DIFF_FC          , input_end_diff_fc);
         Xil_Out32(MLP_INPUT_END_DIFF_OW          , input_end_diff_ow);
         Xil_Out32(MLP_OUTPUT_ELEMENTS_PER_CHANNEL, single_output_size);
-        Xil_Out32(MLP_OUTPUT_INITIAL_OFFSET      , 0x00000000);
-        Xil_Out32(MLP_MAC0_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(0)));
-        Xil_Out32(MLP_MAC1_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(1)));
-        Xil_Out32(MLP_MAC2_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(2)));
-        Xil_Out32(MLP_MAC3_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(3)));
         Xil_Out32(MLP_Q_SCALE                    , static_cast<ui32>(q_scale));
         Xil_Out32(MLP_Q_ZERO                     , static_cast<i32>(z_next));
 
 
 
-        // AHHHHHH I needed to swap filters after writing
-        // Because, because because DMA interface is connected to the bank that is not connected to the accelerator
-        // Soo by switching, I connect the filled bank to the accelerator.
-        Xil_Out32(MLP_CONV_IDLE_REG, MLP_CONV_IDLE_OFF_MASK); 
+        // Idk, there was a compiler issue with pointer arithmetic with void
+        // soo yeah I changed it to be this. Makes someting work
 
-        while (!Xil_In32(MLP_CONV_IDLE_REG)){}
+        for (b = 0; b < kernel_b; b+=CHANNEL_NUM_TO_COMPUTE_AT_ONCE){  // BEGINNING OF BATCH IF. Doing this so I can compare one channel output
+            const auto* filters = static_cast<const uint8_t*>(getWeightData().raw());
+
+            memcpy_dma(MLP_FILTER0, filters + ((b+0) * single_filter_size), single_filter_size);
+            memcpy_dma(MLP_FILTER1, filters + ((b+1) * single_filter_size), single_filter_size);
+            memcpy_dma(MLP_FILTER2, filters + ((b+2) * single_filter_size), single_filter_size);
+            memcpy_dma(MLP_FILTER3, filters + ((b+3) * single_filter_size), single_filter_size);
+
+
+
+            printf("First four channel Dma copy is done\n");
+
+            // HERE
+            //Xil_Out32(MLP_CTRL, 0x0000000); // so basically everyhing is off. not swaaping filters/inputs, maxpooling/relu are both off
+            ui32 ctrl_reg = Xil_In32(MLP_CTRL);
+            ctrl_reg ^= 1U; // Xoring the last bit to toggle it. This is for swapping filters
+            ctrl_reg |= MLP_CTRL_RELU; // and then add RELU
+            Xil_Out32(MLP_CTRL, ctrl_reg); // so basically everyhing is off, but swaaping filters.  maxpooling/relu are both off, not swappig in/out buffers
+
+            Xil_Out32(MLP_OUTPUT_INITIAL_OFFSET      , single_output_size * b); // set the initial offset to single_output_size * b
+            Xil_Out32(MLP_MAC0_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(b)));
+            Xil_Out32(MLP_MAC1_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(b+1)));
+            Xil_Out32(MLP_MAC2_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(b+2)));
+            Xil_Out32(MLP_MAC3_BIAS                  , static_cast<ui32>(getBiasData().get<i32>(b+3)));
+
+
+            // AHHHHHH I needed to swap filters after writing
+            // Because, because because DMA interface is connected to the bank that is not connected to the accelerator
+            // Soo by switching, I connect the filled bank to the accelerator.
+            Xil_Out32(MLP_CONV_IDLE_REG, MLP_CONV_IDLE_OFF_MASK); 
+
+            while (!Xil_In32(MLP_CONV_IDLE_REG)){} // pause here until channel is computed
+        }
 
         LayerData scratch_data(getOutputParams());
         scratch_data.allocData();
 
-        memcpy_dma(scratch_data.raw(), MLP_OUTPUTS, 4 * single_output_size); // gets the byte size
+        memcpy_dma(scratch_data.raw(), MLP_OUTPUTS, getOutputParams().byte_size()); // gets the byte size
 
-        std::cout << "comparing the first 100 nums\n";
-        for (size_t i = 0; i < 200; i++)
-        {
+//        std::cout << "comparing the first 100 nums\n";
+//        for (size_t i = 0; i < 200; i++)
+//        {
 //            std::cout << "REAL: " << static_cast<i32>(getOutputData().get<i8>(i)) << " SCRATCH: " << static_cast<i32>(scratch_data.get<i8>(i)) << "\n";
-        }
+//        }
         
         // I just copied and pasted this cosine similariy example over
         // MODIFIED LENGTH WEIGHTED COSINE SIMILARITY
@@ -426,7 +422,7 @@ namespace ML
         double b_magnitude_sq = 0;
 
         // Recurse as needed into each array
-        for (std::size_t i = 0; i < 4 * 60 * 60; i++)
+        for (std::size_t i = 0; i < getOutputParams().flat_count(); i++)
         {
             a_magnitude_sq += getOutputData().get<i8>(i) * getOutputData().get<i8>(i);
             b_magnitude_sq += scratch_data.get<i8>(i) * scratch_data.get<i8>(i);
