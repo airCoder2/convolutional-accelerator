@@ -344,7 +344,13 @@ namespace ML
         memcpy_dma(MLP_INPUTS, dataIn.raw(), dataIn.getParams().byte_size()); // gets the byte size
 
         // putting the filters into BRAM
-        size_t single_filter_size = getWeightParams().dims[0] * getWeightParams().dims[1] * getWeightParams().dims[2];
+        size_t single_filter_size = getWeightParams().dims            std::cout
+            << "Comparing Outputs (Cosine Similarity): "
+            << (result ? "True" : "False")
+            << " " << clamp(cosine_similarity * 100.0, 0.0, 100.0) << "% "
+            << " ("
+            << cosine_similarity
+            << ")\n";[0] * getWeightParams().dims[1] * getWeightParams().dims[2];
         size_t single_output_size = getOutputParams().dims[0] * getOutputParams().dims[1];
 
         i32 input_end_diff_fw = static_cast<i32>(1 - static_cast<i64>(kernel_w) + image_w);
@@ -410,9 +416,40 @@ namespace ML
         std::cout << "comparing the first 100 nums\n";
         for (size_t i = 0; i < 200; i++)
         {
-            std::cout << "REAL: " << static_cast<i32>(getOutputData().get<i8>(i)) << " SCRATCH: " << static_cast<i32>(scratch_data.get<i8>(i)) << "\n";
+//            std::cout << "REAL: " << static_cast<i32>(getOutputData().get<i8>(i)) << " SCRATCH: " << static_cast<i32>(scratch_data.get<i8>(i)) << "\n";
         }
         
+        // I just copied and pasted this cosine similariy example over
+        // MODIFIED LENGTH WEIGHTED COSINE SIMILARITY
+        double dot_product = 0;
+        double a_magnitude_sq = 0;
+        double b_magnitude_sq = 0;
+
+        // Recurse as needed into each array
+        for (std::size_t i = 0; i < 4 * 60 * 60; i++)
+        {
+            a_magnitude_sq += getOutputData().get<i8>(i) * getOutputData().get<i8>(i);
+            b_magnitude_sq += scratch_data.get<i8>(i) * scratch_data.get<i8>(i);
+            dot_product += getOutputData().get<i8>(i) * scratch_data.get<i8>(i);
+        }
+
+        float cosine_similarity = 0;
+        if (a_magnitude_sq == 0 && b_magnitude_sq == 0)
+        {
+            std::cout << "Zero Magnitude Vector Comparison" << std::endl;
+        }
+        else
+        {
+            cosine_similarity = dot_product / (std::max(a_magnitude_sq, b_magnitude_sq));
+        }
+
+        std::cout
+        << "Comparing Outputs (Cosine Similarity): "
+        << " " << clamp(cosine_similarity * 100.0, 0.0, 100.0) << "% "
+        << " ("
+        << cosine_similarity
+        << ")\n";
+
 
 
 
