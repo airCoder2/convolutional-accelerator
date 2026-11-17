@@ -44,12 +44,12 @@ namespace ML
         // --- Conv 2: L2 ---
         // Input shape: 60x60x32
         // Output shape: 56x56x32
-        model.addLayer<ConvolutionalLayer>(
-            LayerParams{sizeof(i8), {60, 60, 32}},                                    // Input Data
-            LayerParams{sizeof(fp32), {56, 56, 32}},                                   // Output Data
-            LayerParams{sizeof(i8), {5, 5, 32, 32}, modelPath / "quantized_model_data"/weights_dir / "conv2d_1_weights.bin"}, // Weights
-            LayerParams{sizeof(i32), {32}, modelPath / "quantized_model_data"/ biases_dir / "conv2d_1_biases.bin"}            // Bias
-        );
+//        model.addLayer<ConvolutionalLayer>(
+//            LayerParams{sizeof(i8), {60, 60, 32}},                                    // Input Data
+//            LayerParams{sizeof(fp32), {56, 56, 32}},                                   // Output Data
+//            LayerParams{sizeof(i8), {5, 5, 32, 32}, modelPath / "quantized_model_data"/weights_dir / "conv2d_1_weights.bin"}, // Weights
+//            LayerParams{sizeof(i32), {32}, modelPath / "quantized_model_data"/ biases_dir / "conv2d_1_biases.bin"}            // Bias
+//        );
 //
 //        // --- MPL 1: L3 ---
 //        // Input shape: 56x56x32
@@ -159,6 +159,8 @@ namespace ML
         return image_w * image_d * height_idx + image_d * width_idx + depth_idx;
     }
 
+
+
     void runInferenceTest(const Model &model, const Path& input_image_bin, const Path& ground_truth_pred_path)
     {
         // Load an image
@@ -214,9 +216,31 @@ namespace ML
 
         // Compare the output
         // Construct a LayerData object from a LayerParams one
-        LayerData expected(model.getOutputLayer().getOutputParams(), ground_truth_pred_path);
-        expected.loadData();
-        output.compareWithinPrint<fp32>(expected);
+        LayerData expected_fp32({sizeof(fp32), model.getOutputLayer().getOutputParams().dims}, ground_truth_pred_path);
+        expected_fp32.loadData();
+
+        // write a thing, so we get to compare i8s rather than comparing fp32
+        LayerData expected_i8(model.getOutputLayer().getOutputParams()); 
+        expected_i8.allocData();
+
+        // This is for requintizing the feature map itself soo we get to compare the output of our requitized model with it.
+        // I did this because accelerator is going to be outputting an int8 not fp32. (because the dequant unit is built in)
+        // So now using this, I get to compare the output of the accelerator with what we should have gotten
+        for (size_t i = 0; i < model.getOutputLayer().getOutputParams().flat_count(); i++)
+        {
+            i8 requantized_expected = static_cast<i8>(std::clamp(std::nearbyint((SI_VALS[1] * expected_fp32.get<fp32>(i)) + SZ_VALS[1]), min_value, max_value));
+            expected_i8.get<i8>(i) = requantized_expected;
+        }
+        
+
+
+        //model.getNumLayers(); // this will be the last layer
+
+        //std::cout << "fp32 comparison:\n";
+        //output.compareWithinPrint<fp32>(expected_fp32);
+
+        std::cout << "\n\ni8 comparison:\n";
+        output.compareWithinPrint<i8>(expected_i8);
     }
 
     void runTests()
@@ -228,7 +252,7 @@ namespace ML
         Model model = buildToyModel(basePath);
         model.allocLayers(); // ME: allocates memory to store out_data from each leayer
 
-        runInferenceTest(model, basePath / "test_input"/"test_input_image.bin", basePath / "test_input_feature_maps" / "conv2d_1_feature.bin");
+        runInferenceTest(model, basePath / "test_input"/"test_input_image.bin", basePath / "test_input_feature_maps" / "conv2d_feature.bin");
  //       runInferenceTest(model, basePath / "test_input_feature_maps"/"dense_feature.bin", basePath / "test_input_feature_maps" / "dense_1_feature.bin");
 
         // Clean up

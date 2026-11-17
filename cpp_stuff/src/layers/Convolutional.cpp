@@ -111,13 +111,13 @@ namespace ML
                     double out_val;
                     i64 requantized_out_val;
 
-                    if (layer_num == 1)
+                    if (layer_num == 100) // 100 means, just never execute this block. because layer 100 doesn't exist. 
                     {
                         out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
                         out_val = out_val > 0.0 ? out_val : 0;
                         getOutputData().get<fp32>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = out_val;
                     }
-                    else
+                    else // this requintizes it for the next layer makes it an int8
                     {
                         // Requintize:
                         // doing fixed point instead of floating point.
@@ -138,7 +138,7 @@ namespace ML
         // This basically convert from D H W  ------>  H W D
         // because intermediate feature maps are of that format, and I didn't want to
         // export my weights diffrently for maximum robustness
-        if(layer_num == 1){
+        if(layer_num == 0){
             LayerData reordered_data(getOutputParams());
             reordered_data.allocData();
 
@@ -153,9 +153,9 @@ namespace ML
                     for (size_t k = 0; k < o_depth; k++) // so fastest chaning is depth
                     {
                         // image_w * image_d * height_idx + image_d * width_idx + depth_idx;
-                        fp32 temp = getOutputData().get<fp32>(o_widht * o_height * k + o_widht * i + j);
+                        i8 temp = getOutputData().get<i8>(o_widht * o_height * k + o_widht * i + j);
 
-                        reordered_data.get<fp32>(o_depth * o_widht * i + o_depth * j + k) = temp; // DEPTH * WIDHT * (c_h) + DEPTH * (c_w) + c_d
+                        reordered_data.get<i8>(o_depth * o_widht * i + o_depth * j + k) = temp; // DEPTH * WIDHT * (c_h) + DEPTH * (c_w) + c_d
                     }
                 }
                 
