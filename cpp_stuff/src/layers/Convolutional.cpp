@@ -8,7 +8,7 @@
 #include "Layer.h"
 #include "./config.h"
 
-
+#define CHANNEL_NUM_TO_COMPUTE_AT_ONCE 4
 
 namespace ML
 {
@@ -89,22 +89,32 @@ namespace ML
         //    M = 2^32 
         i64 q_scale = static_cast<i64>(M * std::pow(2, 32));
 
-        i64 sum;
+        i64 sum[CHANNEL_NUM_TO_COMPUTE_AT_ONCE] = {0};
+        i8 weights[CHANNEL_NUM_TO_COMPUTE_AT_ONCE] = {0};
+        i8 activation;
 
-        for (b = 0; b < kernel_b; b++){
+        for (b = 0; b < kernel_b; b+=4){
             for (j = 0; j < out_h; j++){
                 for (l = 0; l < out_w; l++){
 
-                    sum = getBiasData().get<i32>(b);
+                    for (size_t x = 0; x < CHANNEL_NUM_TO_COMPUTE_AT_ONCE; x++)
+                    {
+                        sum[x] = getBiasData().get<i32>(b + x);
+                    }
+                    
 
                     for (d = 0; d < kernel_d; d++){
                         for (i = 0; i < kernel_h; i++){
                             for (k = 0; k < kernel_w; k++){
 
-                                i8 weight = getWeightData().get<i8>(get_kernel_flat_idx_cm(i, k, d, b, kernel_w, kernel_d, kernel_h));
-                                i8 activation = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + k, d, image_w, image_h));
+                                activation = dataIn.get<i8>(get_image_flat_idx_cm(j + i, l + k, d, image_w, image_h));
+
+                                for (size_t y = 0; y < sizeof(CHANNEL_NUM_TO_COMPUTE_AT_ONCE); y++)
+                                {
+                                    weights[y] = getWeightData().get<i8>(get_kernel_flat_idx_cm(i, k, d, b + y, kernel_w, kernel_d, kernel_h));
+                                    sum[y] += (weights[y] * activation);
+                                }
                                 
-                                sum += (weight * activation);
                             }
                         }
                     }
@@ -113,22 +123,26 @@ namespace ML
 
                     if (layer_num == 100) // 100 means, just never execute this block. because layer 100 doesn't exist. 
                     {
-                        out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
-                        out_val = out_val > 0.0 ? out_val : 0;
-                        getOutputData().get<fp32>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = out_val;
+                        //out_val = sum / (SW_VALS[layer_num] * SI_VALS[layer_num]);
+                        //out_val = out_val > 0.0 ? out_val : 0;
+                        //getOutputData().get<fp32>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = out_val;
                     }
                     else // this requintizes it for the next layer makes it an int8
                     {
                         // Requintize:
                         // doing fixed point instead of floating point.
-                        i64 product = sum * q_scale;
-                        requantized_out_val = product >> 32;
-                        requantized_out_val = requantized_out_val > 0 ? requantized_out_val : 0; // ReLU
-                        requantized_out_val = requantized_out_val + z_next; // zero
-                        requantized_out_val = std::clamp(requantized_out_val, static_cast<i64>(min_value), static_cast<i64>(max_value));     //saturate
+                        for (size_t z = 0; z < sizeof(CHANNEL_NUM_TO_COMPUTE_AT_ONCE); z++)
+                        {
+                            i64 product = sum[z] * q_scale;
+                            requantized_out_val = product >> 32;
+                            requantized_out_val = requantized_out_val > 0 ? requantized_out_val : 0; // ReLU
+                            requantized_out_val = requantized_out_val + z_next; // zero
+                            requantized_out_val = std::clamp(requantized_out_val, static_cast<i64>(min_value), static_cast<i64>(max_value));     //saturate
+                            
+                            // cast it to i8 and assign to output
+                            getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b + z, out_w, out_h)) = static_cast<i8>(requantized_out_val);
+                        }
                         
-                        // cast it to i8 and assign to output
-                        getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b, out_w, out_h)) = static_cast<i8>(requantized_out_val);
                     }
                }
            }
