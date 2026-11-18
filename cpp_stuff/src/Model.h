@@ -16,6 +16,8 @@ namespace ML
         // Constructors
         inline Model() : layers() {} //, checkFinal(true), checkEachLayer(false) {}
 
+        const LayerData &inference_accel(const LayerData &inData) const;
+
         // Functions
         /**
          * @brief runs inference on a given model

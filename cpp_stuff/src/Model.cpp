@@ -17,6 +17,10 @@ const LayerData& Model::inference(const LayerData& inData, const Layer::InfType 
     return layers.back()->getOutputData();
 }
 
+//const LayerData& Model::inference_accel(const LayerData &inData) const{
+//
+//}
+
 // Run inference on a single layer of the model using the inData and outputting the outData
 // infType can be used to determine the inference function to call
 const LayerData& Model::inferenceLayer(const LayerData& inData, const int layerNum, const Layer::InfType infType) const {

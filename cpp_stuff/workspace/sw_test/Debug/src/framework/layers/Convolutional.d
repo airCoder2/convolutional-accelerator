@@ -11,6 +11,7 @@ src/framework/layers/Convolutional.o src/framework/layers/Convolutional.o: \
  /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/xparameters_ps.h \
  /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/xtime_l.h \
  ../src/framework/layers/Layer.h ../src/framework/layers/./config.h \
+ ../src/framework/layers/../Accelerator.h \
  /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/xil_io.h \
  /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/xil_printf.h \
  /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/bspconfig.h \
@@ -49,6 +50,8 @@ src/framework/layers/Convolutional.o src/framework/layers/Convolutional.o: \
 ../src/framework/layers/Layer.h:
 
 ../src/framework/layers/./config.h:
+
+../src/framework/layers/../Accelerator.h:
 
 /home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bspinclude/include/xil_io.h:
 

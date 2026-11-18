@@ -18,3 +18,9 @@
 
 // to start off, compute 4 channels in software and then write a funciton
 // that can compare those 4 against the expected feature map
+
+// OKAY ALL 4 channels passed,
+// Full layers passed as well individually
+// I haven't connected them yet.
+
+// NEXT DO DENSE LAYER AND CONVOLUTION

@@ -217,6 +217,7 @@ namespace ML
             outData.freeData();
         }
 
+        //virtual void compute_accelerated(const LayerData &dataIn, const int layer_num) const = 0;
         virtual void computeNaive(const LayerData &dataIn, const int layer_num) const = 0;
         virtual void computeThreaded(const LayerData &dataIn) const = 0;
         virtual void computeTiled(const LayerData &dataIn) const = 0;
