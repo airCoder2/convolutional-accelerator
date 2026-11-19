@@ -1,2 +1,2 @@
    text	   data	    bss	    dec	    hex	filename
- 595119	   3776	136362032	136960927	829db9f	sw_test.elf
+ 595055	   3776	136362032	136960863	829db5f	sw_test.elf

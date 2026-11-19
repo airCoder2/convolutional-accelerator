@@ -152,9 +152,17 @@ namespace ML
                             requantized_out_val = requantized_out_val > 0 ? requantized_out_val : 0; // ReLU
                             requantized_out_val = requantized_out_val + z_next; // zero
                             requantized_out_val = std::clamp(requantized_out_val, static_cast<i64>(min_value), static_cast<i64>(max_value));     //saturate
-                            
+
                             // cast it to i8 and assign to output
                             getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b + z, out_w, out_h)) = static_cast<i8>(requantized_out_val);
+                            
+                            /*
+                            // FLOATING POINT IMPLEMENTATION  for requant
+                            // cast it to i8 and assign to output
+                            out_val = std::round(sum[z] * M) + z_next;   // requantize
+                            out_val = std::clamp(out_val, z_next, static_cast<double>(max_value));                    // RELU 
+                            getOutputData().get<i8>(get_out_flat_idx_cm(j, l, b + z, out_w, out_h)) = static_cast<i8>(out_val);
+                            */
                         }
                         
                     }
@@ -260,37 +268,7 @@ namespace ML
 ////        }
         
 
-
-
         // OKAY SO NOW WE NEED TO DO DENSE AS CONVOLUTION !!!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

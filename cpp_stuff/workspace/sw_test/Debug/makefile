@@ -54,7 +54,7 @@ main-build: sw_test.elf secondary-outputs
 sw_test.elf: $(OBJS) ../src/lscript.ld $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM v7 g++ linker'
-	arm-none-eabi-g++ -L/home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bsplib/lib -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,--defsym=_HEAP_SIZE=0x8000000 -Wl,-T -Wl,../src/lscript.ld -o "sw_test.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -L/home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bsplib/lib -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,--defsym=_HEAP_SIZE=0x8000000 -Wl,-T -Wl,../src/lscript.ld -L/home/umhaihl/machine_learning/lab7/cpp_stuff/workspace/sw_test_platform/export/sw_test_platform/sw/sw_test_platform/standalone_domain/bsplib/lib -o "sw_test.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
