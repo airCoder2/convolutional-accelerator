@@ -91,6 +91,31 @@ begin
                      to_signed(-128, C_OUT_WIDTH) when s_zeroed < -128 else
                      s_zeroed(C_OUT_WIDTH-1 downto 0);
 
+    dequantize_reg_stage1: entity work.axis_register_slice
+        generic map(
+            C_DATA_WIDTH => C_OUT_WIDTH,
+            C_TID_WIDTH => C_TID_WIDTH
+        )
+        port map(
+            S_AXIS_TREADY => S_AXIS_TREADY, 
+            S_AXIS_TDATA => std_logic_vector(s_quantized_value),
+            S_AXIS_TLAST => S_AXIS_TLAST,
+            S_AXIS_TID => S_AXIS_TID,
+            S_AXIS_TVALID => S_AXIS_TVALID, 
+
+            M_AXIS_TREADY => M_AXIS_TREADY,
+            M_AXIS_TDATA => M_AXIS_TDATA,
+            M_AXIS_TLAST => M_AXIS_TLAST,
+            M_AXIS_TID => M_AXIS_TID,
+            M_AXIS_TVALID => M_AXIS_TVALID,
+            
+            rst => rst,
+            clk => clk
+        );
+
+
+
+
     dequantize_reg: entity work.axis_register_slice
         generic map(
             C_DATA_WIDTH => C_OUT_WIDTH,
